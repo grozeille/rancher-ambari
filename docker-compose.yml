@@ -1,0 +1,27 @@
+version: '2'
+services:
+  ambari-server:
+    privileged: true
+    image: hortonworks/ambari-server
+    stdin_open: true
+    tty: true
+    ports:
+    - 8081:8080/tcp
+    command:
+    - systemd.setenv=USE_CONSUL_DNS=false
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.container.hostname_override: container_name
+  ambari-agent:
+    privileged: true
+    image: hortonworks/ambari-agent
+    stdin_open: true
+    tty: true
+    links:
+    - ambari-server:ambari-server
+    command:
+    - systemd.setenv=USE_CONSUL_DNS=false
+    - systemd.setenv=AMBARI_SERVER_ADDR=ambari-server
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.container.hostname_override: container_name

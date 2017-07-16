@@ -1,0 +1,28 @@
+version: '2'
+services:
+  ambari-server:
+    retain_ip: true
+    scale: 1
+    start_on_create: true
+    health_check:
+      response_timeout: 2000
+      healthy_threshold: 2
+      port: 8080
+      unhealthy_threshold: 3
+      initializing_timeout: 600000
+      interval: 2000
+      strategy: none
+      reinitializing_timeout: 600000
+  ambari-agent:
+    retain_ip: true
+    scale: 2
+    start_on_create: true
+    health_check:
+      response_timeout: 2000
+      healthy_threshold: 2
+      port: 8670
+      unhealthy_threshold: 3
+      initializing_timeout: 300000
+      interval: 2000
+      strategy: none
+      reinitializing_timeout: 300000
