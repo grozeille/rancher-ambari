@@ -12,7 +12,63 @@ services:
     labels:
       io.rancher.container.pull_image: always
       io.rancher.container.hostname_override: container_name
-  ambari-agent:
+  ambari-agent-namenode:
+    privileged: true
+    image: hortonworks/ambari-agent
+    stdin_open: true
+    tty: true
+    ports:
+    - 50070:50070/tcp
+    links:
+    - ambari-server:ambari-server
+    command:
+    - systemd.setenv=USE_CONSUL_DNS=false
+    - systemd.setenv=AMBARI_SERVER_ADDR=ambari-server
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.container.hostname_override: container_name
+  ambari-agent-secondarynamenode:
+    privileged: true
+    image: hortonworks/ambari-agent
+    stdin_open: true
+    tty: true
+    links:
+    - ambari-server:ambari-server
+    command:
+    - systemd.setenv=USE_CONSUL_DNS=false
+    - systemd.setenv=AMBARI_SERVER_ADDR=ambari-server
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.container.hostname_override: container_name
+  ambari-agent-resourcemanager:
+    privileged: true
+    image: hortonworks/ambari-agent
+    stdin_open: true
+    tty: true
+    ports:
+    - 8088:8088/tcp
+    links:
+    - ambari-server:ambari-server
+    command:
+    - systemd.setenv=USE_CONSUL_DNS=false
+    - systemd.setenv=AMBARI_SERVER_ADDR=ambari-server
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.container.hostname_override: container_name
+  ambari-agent-zookeeper:
+    privileged: true
+    image: hortonworks/ambari-agent
+    stdin_open: true
+    tty: true
+    links:
+    - ambari-server:ambari-server
+    command:
+    - systemd.setenv=USE_CONSUL_DNS=false
+    - systemd.setenv=AMBARI_SERVER_ADDR=ambari-server
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.container.hostname_override: container_name
+  ambari-agent-datanode:
     privileged: true
     image: hortonworks/ambari-agent
     stdin_open: true

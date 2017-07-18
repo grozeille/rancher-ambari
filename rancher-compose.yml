@@ -13,9 +13,61 @@ services:
       interval: 2000
       strategy: none
       reinitializing_timeout: 600000
-  ambari-agent:
+  ambari-agent-namenode:
     retain_ip: true
-    scale: 2
+    scale: 1
+    start_on_create: true
+    health_check:
+      response_timeout: 2000
+      healthy_threshold: 2
+      port: 8670
+      unhealthy_threshold: 3
+      initializing_timeout: 300000
+      interval: 2000
+      strategy: none
+      reinitializing_timeout: 300000
+  ambari-agent-secondarynamenode:
+    retain_ip: true
+    scale: 1
+    start_on_create: true
+    health_check:
+      response_timeout: 2000
+      healthy_threshold: 2
+      port: 8670
+      unhealthy_threshold: 3
+      initializing_timeout: 300000
+      interval: 2000
+      strategy: none
+      reinitializing_timeout: 300000
+  ambari-agent-resourcemanager:
+    retain_ip: true
+    scale: 1
+    start_on_create: true
+    health_check:
+      response_timeout: 2000
+      healthy_threshold: 2
+      port: 8670
+      unhealthy_threshold: 3
+      initializing_timeout: 300000
+      interval: 2000
+      strategy: none
+      reinitializing_timeout: 300000
+  ambari-agent-zookeeper:
+    retain_ip: true
+    scale: 1
+    start_on_create: true
+    health_check:
+      response_timeout: 2000
+      healthy_threshold: 2
+      port: 8670
+      unhealthy_threshold: 3
+      initializing_timeout: 300000
+      interval: 2000
+      strategy: none
+      reinitializing_timeout: 300000
+  ambari-agent-datanode:
+    retain_ip: true
+    scale: 3
     start_on_create: true
     health_check:
       response_timeout: 2000
