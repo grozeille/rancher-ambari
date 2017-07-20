@@ -1,5 +1,17 @@
 version: '2'
 services:
+  ambari-server-database:
+    image: library/postgres:9.6
+    environment:
+      POSTGRES_USER: ambari
+      POSTGRES_PASSWORD: bigdata
+      POSTGRES_DB: ambari
+    stdin_open: true
+    tty: true
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.container.hostname_override: container_name
+      io.rancher.scheduler.affinity:host_label: ambari=server
   ambari-server:
     privileged: true
     image: hortonworks/ambari-server
@@ -7,11 +19,15 @@ services:
     tty: true
     ports:
     - 8081:8080/tcp
+    links:
+    - ambari-server-database:ambari-server-database
     command:
     - systemd.setenv=USE_CONSUL_DNS=false
+    - systemd.setenv=POSTGRES_DB=ambari-server-database
     labels:
       io.rancher.container.pull_image: always
       io.rancher.container.hostname_override: container_name
+      io.rancher.scheduler.affinity:host_label: ambari=server
   ambari-agent-namenode:
     privileged: true
     image: hortonworks/ambari-agent
@@ -27,6 +43,7 @@ services:
     labels:
       io.rancher.container.pull_image: always
       io.rancher.container.hostname_override: container_name
+      io.rancher.scheduler.affinity:host_label: hadoop=master
   ambari-agent-secondarynamenode:
     privileged: true
     image: hortonworks/ambari-agent
@@ -40,6 +57,7 @@ services:
     labels:
       io.rancher.container.pull_image: always
       io.rancher.container.hostname_override: container_name
+      io.rancher.scheduler.affinity:host_label: hadoop=master
   ambari-agent-resourcemanager:
     privileged: true
     image: hortonworks/ambari-agent
@@ -55,6 +73,7 @@ services:
     labels:
       io.rancher.container.pull_image: always
       io.rancher.container.hostname_override: container_name
+      io.rancher.scheduler.affinity:host_label: hadoop=master
   ambari-agent-zookeeper:
     privileged: true
     image: hortonworks/ambari-agent
@@ -68,6 +87,7 @@ services:
     labels:
       io.rancher.container.pull_image: always
       io.rancher.container.hostname_override: container_name
+      io.rancher.scheduler.affinity:host_label: hadoop=master
   ambari-agent-datanode:
     privileged: true
     image: hortonworks/ambari-agent
@@ -81,3 +101,4 @@ services:
     labels:
       io.rancher.container.pull_image: always
       io.rancher.container.hostname_override: container_name
+      io.rancher.scheduler.affinity:host_label: hadoop=data

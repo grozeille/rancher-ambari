@@ -19,11 +19,15 @@ RANCHER_SECRET_KEY=os.environ['RANCHER_SECRET_KEY']
 
 logging.info("Starting Ambari through Rancher deployment")
 
+env_name = 'Default'
 stack_name = 'hdp'
-cluster_size = 3
+cluster_size = 1
+
+hdp_repo_url = 'http://192.168.1.63/yum/hdp/HDP/centos7/2.x/updates/2.6.1.0'
+hdp_util_repo_url = 'http://192.168.1.63/yum/hdp/HDP-UTILS-1.1.0.21/repos/centos7'
 
 rancher_client = RancherClient()
-rancher_client.connect(RANCHER_URL, RANCHER_ACCESS_KEY, RANCHER_SECRET_KEY, stack_name)
+rancher_client.connect(RANCHER_URL, RANCHER_ACCESS_KEY, RANCHER_SECRET_KEY, env_name, stack_name)
 
 rancher_client.createNewStack('docker-compose.yml', 'rancher-compose.yml', cluster_size)
 
@@ -33,4 +37,4 @@ ambari_client = AmbariClient()
 
 ambari_client.connect(ambari_public_ip, stack_name)
 
-ambari_client.createCluster('blueprint.json', cluster_size)
+ambari_client.createCluster('blueprint.json', cluster_size, hdp_repo_url=hdp_repo_url, hdp_util_repo_url=hdp_util_repo_url)

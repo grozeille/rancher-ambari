@@ -7,7 +7,7 @@ class RancherClient:
     def __init__(self):
         pass
 
-    def connect(self, rancher_url, rancher_access_key, rancher_secrect_key, stack_name):
+    def connect(self, rancher_url, rancher_access_key, rancher_secrect_key, env_name, stack_name):
         self.session = Session()
         self.session.auth = (rancher_access_key, rancher_secrect_key)
         self.session.headers.update({'Content-Type': 'application/json'})
@@ -18,8 +18,11 @@ class RancherClient:
         r = self.session.get(self.rancher_url + '/v2-beta/projects')
         r.raise_for_status()
         for item in r.json()['data']:
-            if item['name'] == 'default':
+            if item['name'] == env_name:
                 self.project_id = item['id']
+
+        if self.project_id == '':
+            raise Exception("Environment {0} not found".format(env_name))
 
         self.stack_id = None
         self.stack_name = stack_name
@@ -36,6 +39,9 @@ class RancherClient:
 
         r = self.session.get(
             self.rancher_url + '/v2-beta/projects/{0}/stacks/?name={1}'.format(self.project_id, self.stack_name))
+
+        if r.status_code == 404:
+            return False
 
         r.raise_for_status()
         result = r.json()

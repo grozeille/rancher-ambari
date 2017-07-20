@@ -17,7 +17,7 @@ class AmbariClient:
         })
         self.stack_name = stack_name
 
-    def createCluster(self, blueprint_file, cluster_size):
+    def createCluster(self, blueprint_file, cluster_size, hdp_repo_url=None, hdp_util_repo_url=None):
 
         # wait for ambari to be ready
         while True:
@@ -28,10 +28,40 @@ class AmbariClient:
 
         logging.info("Ambari Ready")
 
+        if hdp_repo_url != None:
+            logging.info("Updating HDP repository")
+            repositories = {
+                "Repositories": {
+                    "base_url": hdp_repo_url,
+                    "verify_base_url": True
+                }
+            }
+            r = self.session.put(
+                self.ambari_url + '/api/v1/stacks/HDP/versions/2.5/operating_systems/redhat7/repositories/HDP-2.5',
+                data=json.dumps(repositories))
+            r.raise_for_status()
+
+        if hdp_util_repo_url != None:
+            logging.info("Updating HDP Util repository")
+            repositories = {
+                "Repositories": {
+                    "base_url": hdp_util_repo_url,
+                    "verify_base_url": True
+                }
+            }
+            r = self.session.put(
+                self.ambari_url + '/api/v1/stacks/HDP/versions/2.5/operating_systems/redhat7/repositories/HDP-UTILS-1.1.0.21',
+                data=json.dumps(repositories))
+            r.raise_for_status()
+
         with open(blueprint_file, 'r', encoding='UTF8') as file:
             blueprint_json = json.load(file)
 
         blueprint_name = 'blueprint'
+
+        r = self.session.get(self.ambari_url + '/api/v1/blueprints/' + blueprint_name)
+        if r.status_code == 200:
+            r = self.session.delete(self.ambari_url + '/api/v1/blueprints/' + blueprint_name)
 
         r = self.session.post(self.ambari_url + '/api/v1/blueprints/' + blueprint_name, data=json.dumps(blueprint_json))
         r.raise_for_status()
