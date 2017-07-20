@@ -22,7 +22,7 @@ class AmbariClient:
         # wait for ambari to be ready
         while True:
             ready = self.checkForAmbari()
-            time.sleep(5)
+            time.sleep(10)
             if ready:
                 break
 

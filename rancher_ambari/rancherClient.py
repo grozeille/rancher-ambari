@@ -85,7 +85,7 @@ class RancherClient:
         stack_health_state = ''
         time.sleep(15)
         while stack_health_state != 'healthy':
-            time.sleep(5)
+            time.sleep(10)
             r = self.session.get(self.rancher_url+ '/v2-beta/projects/{0}/stacks/{1}'.format(self.project_id, self.stack_id))
 
             r.raise_for_status()
