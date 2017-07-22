@@ -1,0 +1,86 @@
+{
+  "configurations" : [
+  ],
+  "host_groups" : [
+    {
+      "name" : "host_group_namenode",
+      "configurations" : [ ],
+      "components" : [
+        {
+          "name" : "NAMENODE"
+        }
+      ]
+    },
+    {
+      "name" : "host_group_secondarynamenode",
+      "configurations" : [ ],
+      "components" : [
+        {
+          "name" : "SECONDARY_NAMENODE"
+        }
+      ]
+    },
+    {
+      "name" : "host_group_zookeeper",
+      "configurations" : [ ],
+      "components" : [
+        {
+          "name" : "ZOOKEEPER_SERVER"
+        }
+      ]
+    },
+    {
+      "name" : "host_group_resourcemanager",
+      "configurations" : [ ],
+      "components" : [
+        {
+          "name" : "RESOURCEMANAGER"
+        },
+        {
+          "name" : "HISTORYSERVER"
+        },
+        {
+          "name" : "APP_TIMELINE_SERVER"
+        }
+      ]
+    },
+    {
+      "name" : "host_group_datanode",
+      "configurations" : [ ],
+      "cardinality" : "1",
+      "components" : [
+        {
+          "name" : "NODEMANAGER"
+        },
+        {
+          "name" : "DATANODE"
+        },
+        {
+          "name" : "SLIDER"
+        },
+        {
+          "name" : "PIG"
+        },
+        {
+          "name" : "ZOOKEEPER_CLIENT"
+        },
+        {
+          "name" : "HDFS_CLIENT"
+        },
+        {
+          "name" : "YARN_CLIENT"
+        },
+        {
+          "name" : "MAPREDUCE2_CLIENT"
+        },
+        {
+          "name" : "TEZ_CLIENT"
+        }
+      ]
+    }
+  ],
+  "Blueprints" : {
+    "stack_name" : "HDP",
+    "stack_version" : "2.5"
+  }
+}
