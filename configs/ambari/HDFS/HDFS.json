@@ -2,7 +2,7 @@
     "properties": {
         "core-site": {
             "properties": {
-                "fs.defaultFS": "hdfs://%HOSTGROUP::host_group_namenode%:8020",
+                "fs.defaultFS": "hdfs://hdp-ambari-agent-namenode-1:8020",
                 "fs.trash.interval": "360",
                 "ha.failover-controller.active-standby-elector.zk.op.retries": "120",
                 "hadoop.http.authentication.simple.anonymous.allowed": "true",
@@ -126,13 +126,13 @@
                 "dfs.namenode.datanode.registration.ip-hostname-check": "false",
                 "dfs.namenode.fslock.fair": "false",
                 "dfs.namenode.handler.count": "100",
-                "dfs.namenode.http-address": "%HOSTGROUP::host_group_namenode%:50070",
-                "dfs.namenode.https-address": "%HOSTGROUP::host_group_namenode%:50470",
+                "dfs.namenode.http-address": "hdp-ambari-agent-namenode-1:50070",
+                "dfs.namenode.https-address": "hdp-ambari-agent-namenode-1:50470",
                 "dfs.namenode.name.dir": "/hadoop/hdfs/namenode",
                 "dfs.namenode.name.dir.restore": "true",
-                "dfs.namenode.rpc-address": "%HOSTGROUP::host_group_namenode%:8020",
+                "dfs.namenode.rpc-address": "hdp-ambari-agent-namenode-1:8020",
                 "dfs.namenode.safemode.threshold-pct": "1",
-                "dfs.namenode.secondary.http-address": "%HOSTGROUP::host_group_secondarynamenode%:50090",
+                "dfs.namenode.secondary.http-address": "hdp-ambari-agent-secondarynamenode-1:50090",
                 "dfs.namenode.stale.datanode.interval": "30000",
                 "dfs.namenode.startup.delay.block.deletion.sec": "3600",
                 "dfs.namenode.write.stale.datanode.ratio": "1.0f",
@@ -147,6 +147,24 @@
                 "nfs.file.dump.dir": "/tmp/.hdfs-nfs"
             },
             "properties_attributes": {
+                "dfs.datanode.data.dir": {
+                    "final": "true"
+                },
+                "dfs.datanode.failed.volumes.tolerated": {
+                    "final": "true"
+                },
+                "dfs.namenode.http-address": {
+                    "final": "true"
+                },
+                "dfs.namenode.name.dir": {
+                    "final": "true"
+                },
+                "dfs.support.append": {
+                    "final": "true"
+                },
+                "dfs.webhdfs.enabled": {
+                    "final": "true"
+                },
                 "final": {
                     "dfs.datanode.data.dir": "true",
                     "dfs.datanode.failed.volumes.tolerated": "true",
@@ -173,6 +191,7 @@
         },
         "ranger-hdfs-plugin-properties": {
             "properties": {
+                "REPOSITORY_CONFIG_PASSWORD": "SECRET:ranger-hdfs-plugin-properties:2:REPOSITORY_CONFIG_PASSWORD",
                 "REPOSITORY_CONFIG_USERNAME": "hadoop",
                 "common.name.for.certificate": "",
                 "hadoop.rpc.protection": "authentication",
@@ -185,8 +204,10 @@
             "properties": {
                 "xasecure.policymgr.clientssl.keystore": "/usr/hdp/current/hadoop-client/conf/ranger-plugin-keystore.jks",
                 "xasecure.policymgr.clientssl.keystore.credential.file": "jceks://file{{credential_file}}",
+                "xasecure.policymgr.clientssl.keystore.password": "SECRET:ranger-hdfs-policymgr-ssl:2:xasecure.policymgr.clientssl.keystore.password",
                 "xasecure.policymgr.clientssl.truststore": "/usr/hdp/current/hadoop-client/conf/ranger-plugin-truststore.jks",
-                "xasecure.policymgr.clientssl.truststore.credential.file": "jceks://file{{credential_file}}"
+                "xasecure.policymgr.clientssl.truststore.credential.file": "jceks://file{{credential_file}}",
+                "xasecure.policymgr.clientssl.truststore.password": "SECRET:ranger-hdfs-policymgr-ssl:2:xasecure.policymgr.clientssl.truststore.password"
             },
             "properties_attributes": {}
         },
@@ -205,8 +226,10 @@
         "ssl-client": {
             "properties": {
                 "ssl.client.keystore.location": "/etc/security/clientKeys/keystore.jks",
+                "ssl.client.keystore.password": "SECRET:ssl-client:2:ssl.client.keystore.password",
                 "ssl.client.keystore.type": "jks",
                 "ssl.client.truststore.location": "/etc/security/clientKeys/all.jks",
+                "ssl.client.truststore.password": "SECRET:ssl-client:2:ssl.client.truststore.password",
                 "ssl.client.truststore.reload.interval": "10000",
                 "ssl.client.truststore.type": "jks"
             },
@@ -214,9 +237,12 @@
         },
         "ssl-server": {
             "properties": {
+                "ssl.server.keystore.keypassword": "SECRET:ssl-server:2:ssl.server.keystore.keypassword",
                 "ssl.server.keystore.location": "/etc/security/serverKeys/keystore.jks",
+                "ssl.server.keystore.password": "SECRET:ssl-server:2:ssl.server.keystore.password",
                 "ssl.server.keystore.type": "jks",
                 "ssl.server.truststore.location": "/etc/security/serverKeys/all.jks",
+                "ssl.server.truststore.password": "SECRET:ssl-server:2:ssl.server.truststore.password",
                 "ssl.server.truststore.reload.interval": "10000",
                 "ssl.server.truststore.type": "jks"
             },

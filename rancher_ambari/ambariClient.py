@@ -69,31 +69,11 @@ class AmbariClient:
         r.raise_for_status()
         logging.info("Blueprint uploaded")
 
-        host_groups = [
-            { "name": "namenode", "size": 1 },
-            { "name": "secondarynamenode", "size": 1 },
-            { "name": "resourcemanager", "size": 1 },
-            { "name": "zookeeper", "size":1 },
-            { "name": "datanode", "size": cluster_size },
-        ]
-
         cluster = {
             'blueprint': blueprint_name,
             'default_password': 'admin',
-            'host_groups': []
+            'host_groups': self.build_host_groups(cluster_size)
         }
-
-        for host_group_name in host_groups:
-            host_group = {
-                'name': 'host_group_'+host_group_name['name'],
-                'hosts': []
-            }
-
-            for cpt in range(1, host_group_name['size']+1):
-                host_group['hosts'].append({'fqdn': '{0}-ambari-agent-{1}-{2}'.format(self.stack_name, host_group_name['name'], cpt)})
-
-            cluster['host_groups'].append(host_group)
-
 
         r = self.session.post(self.ambari_url + '/api/v1/clusters/' + self.stack_name, data=json.dumps(cluster))
         r.raise_for_status()
@@ -115,7 +95,108 @@ class AmbariClient:
 
         logging.info("Cluster Ready")
 
-        pass
+    def build_host_groups(self, cluster_size):
+
+        result = []
+
+        host_groups = [
+            {"name": "namenode", "size": 1},
+            {"name": "secondarynamenode", "size": 1},
+            {"name": "resourcemanager", "size": 1},
+            {"name": "zookeeper", "size": 1},
+            {"name": "datanode", "size": cluster_size},
+        ]
+
+        for host_group_name in host_groups:
+            host_group = {
+                'name': 'host_group_' + host_group_name['name'],
+                'hosts': []
+            }
+
+            for cpt in range(1, host_group_name['size'] + 1):
+                host_group['hosts'].append(
+                    {'fqdn': '{0}-ambari-agent-{1}-{2}'.format(self.stack_name, host_group_name['name'], cpt)})
+
+                result.append(host_group)
+
+        return result
+
+    def update_cluster(self, config_folder, cluster_size):
+
+        r = self.session.get(self.ambari_url+"/api/v1/clusters/hdp?fields=Clusters/desired_configs,services")
+        r.raise_for_status()
+        desired_configs = r.json()["Clusters"]["desired_configs"]
+
+        blueprint = self.build_config(config_folder)
+
+        new_configs = {}
+        for config_item in blueprint["configurations"]:
+            config_key = list(config_item.keys())[0]
+            new_configs[config_key] = config_item[config_key]
+
+        service_configs = self.get_service_configs()
+
+        installed_service_configs = {}
+        for service in r.json()["services"]:
+            service_name = service["ServiceInfo"]["service_name"]
+            installed_service_configs[service_name] = service_configs[service_name]
+
+        for service in installed_service_configs:
+            for configuration in installed_service_configs[service]:
+                desired_config = desired_configs[configuration]
+                tag = desired_config["tag"]
+                r = self.session.get(self.ambari_url+"/api/v1/clusters/{0}/configurations?type={1}&tag={2}".format(self.stack_name, configuration, tag))
+                r.raise_for_status()
+
+                original_config = r.json()["items"][0]
+                new_config = new_configs[configuration]
+
+                #logging.info(new_configs)
+                #logging.info(original_config)
+
+                diff_config = self.get_config_diff(original_config, new_config, cluster_size)
+
+                logging.info(diff_config)
+
+
+    def get_config_diff(self, original, new, cluster_size):
+        contains_diff = False
+
+        host_groups = self.build_host_groups(cluster_size)
+
+        diff = {
+            "properties": {},
+            "properties_attributes": {}
+        }
+
+        if original.get("properties") == None:
+            logging.info("No configuration for "+original["type"])
+            return None
+
+        for key in original["properties"]:
+            original_value = original["properties"][key]
+            new_value = new["properties"].get(key)
+            if new_value != None:
+                new_value = self.replace_host(new_value, host_groups)
+
+                if original_value != new_value:
+                    diff["properties"][key] = new_value
+                    contains_diff = True
+
+        if contains_diff:
+            return diff
+        else:
+            return None
+
+    def replace_host(self, value, host_groups):
+
+        for host_group in host_groups:
+            name = host_group["name"]
+            hosts = list(map(lambda h: h["fqdn"], host_group["hosts"]))
+            hosts_string = ','.join(hosts)
+            value = value.replace("%HOSTGROUP::{0}%".format(name), hosts_string)
+
+        return value
 
     def check_for_ambari(self):
         "wait for ambari to be ready"
@@ -183,12 +264,16 @@ class AmbariClient:
         return blueprint
 
     def dump_config(self, config_folder):
-        r = self.session.get(self.ambari_url + '/api/v1/clusters/' + self.stack_name + '?format=blueprint')
+        r = self.session.get(self.ambari_url + '/api/v1/clusters/' + self.stack_name + '?fields=service_config_versions,Clusters/desired_service_config_versions')
 
         r.raise_for_status()
 
+        service_json = r.json()
+
+        # get all services with theirs configs
         service_configs = self.get_service_configs()
 
+        # build a json per service with all configs
         service_config_json = {}
         for service_key in service_configs:
             service_config_json[service_key] = {
@@ -198,26 +283,30 @@ class AmbariClient:
             "properties" : {}
         }
 
-        blueprint = r.json()
-        for config_item in blueprint['configurations']:
-            config_key = list(config_item.keys())[0]
+        # get the last version of the service configs
+        service_config_version = {}
+        for item in service_json["Clusters"]["desired_service_config_versions"]:
+            service_config_version[item] = service_json["Clusters"]["desired_service_config_versions"][item][0]["service_config_version"]
 
-            service = 'Unknown'
-            if config_key == 'cluster-env':
-                service = 'CLUSTER'
-            else:
-                for service_key in service_configs:
-                    if config_key in service_configs[service_key]:
-                        service = service_key
-                        break
+        # create the configs json for each services
+        service_configuration = service_json["service_config_versions"]
+        for config_item in service_configuration:
+            config_key = config_item["service_name"]
 
-            if service == "Unknown":
-                logging.error("Unknown config: {0}".format(config_key))
-                raise Exception("Unknown config: {0}".format(config_key))
+            if service_config_version[config_key] != config_item["service_config_version"]:
+                continue
 
-            service_config_json[service]['properties'].update(config_item)
+            for config in config_item["configurations"]:
+                service_config_json[config_key]['properties'][config['type']] = {
+                    "properties": {},
+                    "properties_attributes": {}
+                }
+
+                service_config_json[config_key]['properties'][config['type']]['properties'] = config["properties"]
+                service_config_json[config_key]['properties'][config['type']]['properties_attributes'] = config["properties_attributes"]
 
 
+        # dump the json per service, and replace "content" by an external file
         for service_key in service_config_json:
 
             os.makedirs(os.path.join(config_folder, service_key), exist_ok=True)
@@ -270,8 +359,6 @@ class AmbariClient:
                 "ranger-hdfs-security"
             ],
             'YARN': [
-                "mapred-site",
-                "mapred-env",
                 "yarn-env",
                 "yarn-log4j",
                 "yarn-site",
@@ -280,6 +367,10 @@ class AmbariClient:
                 "ranger-yarn-audit",
                 "ranger-yarn-policymgr-ssl",
                 "ranger-yarn-security"
+            ],
+            'MAPREDUCE2': [
+                "mapred-site",
+                "mapred-env"
             ],
             'ZOOKEEPER': [
                 "zookeeper-log4j",
@@ -375,12 +466,14 @@ class AmbariClient:
                 "DATANODE",
                 "HDFS_CLIENT"
             ],
+            "MAPREDUCE2": [
+                "MAPREDUCE2_CLIENT",
+                "HISTORYSERVER"
+            ],
             "YARN": [
                 "NODEMANAGER",
-                "MAPREDUCE2_CLIENT",
                 "YARN_CLIENT",
                 "RESOURCEMANAGER",
-                "HISTORYSERVER",
                 "APP_TIMELINE_SERVER"
             ],
             "ZOOKEEPER": [

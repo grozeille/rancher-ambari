@@ -36,6 +36,7 @@ ambari_client = AmbariClient()
 
 ambari_client.connect(ambari_public_ip, stack_name)
 
-#ambari_client.dump_config('configs/ambari')
+ambari_client.dump_config('configs/ambari')
 
-ambari_client.create_cluster('configs/ambari', cluster_size, hdp_repo_url=hdp_repo_url, hdp_util_repo_url=hdp_util_repo_url)
+#ambari_client.create_cluster('configs/ambari', cluster_size, hdp_repo_url=hdp_repo_url, hdp_util_repo_url=hdp_util_repo_url)
+#ambari_client.update_cluster('configs/ambari', cluster_size)
