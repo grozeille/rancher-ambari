@@ -2,6 +2,7 @@ from requests import Request, Session
 import yaml
 import time
 import logging
+import os
 
 class RancherClient:
     def __init__(self):
@@ -51,7 +52,7 @@ class RancherClient:
         else:
             return False
 
-    def createNewStack(self, docker_compose_file, rancher_compose_file, cluster_size):
+    def createNewStack(self, config_folder, cluster_size):
 
         if self.getStack() == True:
             logging.info("Stack already created, skip")
@@ -61,6 +62,9 @@ class RancherClient:
         # create the new stack
         new_stack_request_data = {}
         new_stack_request_data['name'] = self.stack_name
+
+        docker_compose_file = os.path.join(config_folder, 'docker-compose.yml')
+        rancher_compose_file = os.path.join(config_folder, 'rancher-compose.yml')
 
         with open(docker_compose_file, 'r') as file:
             docker_compose = file.read()

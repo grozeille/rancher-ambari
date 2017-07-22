@@ -548,7 +548,7 @@
           "dfs.namenode.checkpoint.period" : "21600",
           "dfs.namenode.avoid.read.stale.datanode" : "true",
           "dfs.block.access.token.enable" : "true",
-          "dfs.replication" : "3",
+          "dfs.replication" : "1",
           "dfs.journalnode.https-address" : "0.0.0.0:8481",
           "dfs.namenode.stale.datanode.interval" : "30000",
           "dfs.client.read.shortcircuit.streams.cache.size" : "4096",
@@ -582,7 +582,8 @@
           "dfs.https.port" : "50470",
           "dfs.client.read.shortcircuit" : "true",
           "dfs.replication.max" : "50",
-          "dfs.namenode.accesstime.precision" : "0"
+          "dfs.namenode.accesstime.precision" : "0",
+          "dfs.namenode.datanode.registration.ip-hostname-check": "false"
         }
       }
     },

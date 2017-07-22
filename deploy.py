@@ -4,7 +4,6 @@ import os
 import logging
 import sys
 
-logging.getLogger().addHandler(logging.StreamHandler())
 logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
 rootLogger = logging.getLogger()
 rootLogger.setLevel(logging.INFO)
@@ -29,7 +28,7 @@ hdp_util_repo_url = 'http://192.168.1.63/yum/hdp/HDP-UTILS-1.1.0.21/repos/centos
 rancher_client = RancherClient()
 rancher_client.connect(RANCHER_URL, RANCHER_ACCESS_KEY, RANCHER_SECRET_KEY, env_name, stack_name)
 
-rancher_client.createNewStack('docker-compose.yml', 'rancher-compose.yml', cluster_size)
+#rancher_client.createNewStack('configs/rancher', cluster_size)
 
 ambari_public_ip = rancher_client.getAmbariMasterIp()
 
@@ -37,4 +36,6 @@ ambari_client = AmbariClient()
 
 ambari_client.connect(ambari_public_ip, stack_name)
 
-ambari_client.createCluster('blueprint.json', cluster_size, hdp_repo_url=hdp_repo_url, hdp_util_repo_url=hdp_util_repo_url)
+#ambari_client.createCluster('configs/ambari', cluster_size, hdp_repo_url=hdp_repo_url, hdp_util_repo_url=hdp_util_repo_url)
+
+ambari_client.dumpConfig('configs/ambari')

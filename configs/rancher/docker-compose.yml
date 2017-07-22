@@ -71,6 +71,7 @@ services:
     tty: true
     ports:
     - 8088:8088/tcp
+    - 19888:19888/tcp
     links:
     - ambari-server:ambari-server
     command:
@@ -103,6 +104,9 @@ services:
     volumes:
     - /mnt/sda1/hadoop:/hadoop
     tty: true
+    ports:
+    - 8042:8042/tcp
+    - 50075:50075/tcp
     links:
     - ambari-server:ambari-server
     command:

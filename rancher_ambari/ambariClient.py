@@ -3,6 +3,7 @@ import sys
 import time
 import json
 import logging
+import os
 
 class AmbariClient:
     def __init__(self):
@@ -17,7 +18,9 @@ class AmbariClient:
         })
         self.stack_name = stack_name
 
-    def createCluster(self, blueprint_file, cluster_size, hdp_repo_url=None, hdp_util_repo_url=None):
+    def createCluster(self, config_folder, cluster_size, hdp_repo_url=None, hdp_util_repo_url=None):
+
+        blueprint_file = os.path.join(config_folder, 'blueprint.json')
 
         # wait for ambari to be ready
         while True:
@@ -139,3 +142,152 @@ class AmbariClient:
             return False
         else:
             return True
+
+    def dumpConfig(self, config_folder):
+        r = self.session.get(self.ambari_url + '/api/v1/clusters/' + self.stack_name + '?format=blueprint')
+
+        r.raise_for_status()
+
+
+        # split configs in several components
+        component_configs = {
+            'HDFS': [
+                "core-site",
+                "hdfs-site",
+                "hadoop-env",
+                "hadoop-policy",
+                "hdfs-log4j",
+                "ssl-client",
+                "ssl-server",
+                "ranger-hdfs-plugin-properties",
+                "ranger-hdfs-audit",
+                "ranger-hdfs-policymgr-ssl",
+                "ranger-hdfs-security"
+            ],
+            'YARN': [
+                "mapred-site",
+                "mapred-env",
+                "yarn-env",
+                "yarn-log4j",
+                "yarn-site",
+                "capacity-scheduler",
+                "ranger-yarn-plugin-properties",
+                "ranger-yarn-audit",
+                "ranger-yarn-policymgr-ssl",
+                "ranger-yarn-security"
+            ],
+            'ZOOKEEPER': [
+                "zookeeper-log4j",
+                "zookeeper-env",
+                "zoo.cfg"
+            ],
+            'PIG': [
+                "pig-env",
+                "pig-log4j",
+                "pig-properties"
+            ],
+            'TEZ': [
+                "tez-site",
+                "tez-env"
+            ],
+            'SLIDER': [
+                "slider-log4j",
+                "slider-client",
+                "slider-env"
+            ],
+            'HIVE': [
+                "hive-log4j",
+                "hive-exec-log4j",
+                "hive-env",
+                "hivemetastore-site.xml",
+                "webhcat-site",
+                "webhcat-env",
+                "ranger-hive-plugin-properties",
+                "ranger-hive-audit",
+                "ranger-hive-policymgr-ssl",
+                "ranger-hive-security"
+            ],
+            'OOZIE': [
+                "oozie-site",
+                "oozie-env",
+                "oozie-log4j"
+            ],
+            'HBASE': [
+                "hbase-policy",
+                "hbase-site",
+                "hbase-env",
+                "hbase-log4j",
+                "ranger-hbase-plugin-properties",
+                "ranger-hbase-audit",
+                "ranger-hbase-policymgr-ssl",
+                "ranger-hbase-security"
+            ],
+            'SPARK': [
+                "spark-defaults",
+                "spark-env",
+                "spark-log4j-properties",
+                "spark-metrics-properties",
+                "spark-javaopts-properties",
+                "spark-thrift-sparkconf",
+                "spark-hive-site-override",
+                "spark-thrift-fairscheduler"
+            ],
+            'KAFKA': [
+                "kafka-broker",
+                "kafka-env",
+                "kafka-log4j",
+                "ranger-kafka-plugin-properties",
+                "ranger-kafka-audit",
+                "ranger-kafka-policymgr-ssl",
+                "ranger-kafka-security"
+            ],
+            'KNOX': [
+                "gateway-site",
+                "gateway-log4j",
+                "topology",
+                "admin-topology",
+                "knoxsso-topology",
+                "ranger-knox-plugin-properties",
+                "ranger-knox-audit",
+                "ranger-knox-policymgr-ssl",
+                "ranger-knox-security"
+            ],
+            'RANGER': [
+                "admin-log4j",
+                "usersync-log4j",
+                "ranger-admin-site",
+                "ranger-ugsync-site",
+            ]
+        }
+
+        component_config_json = {}
+        for component_key in component_configs:
+            component_config_json[component_key] = {
+                "properties" : {}
+            }
+        component_config_json['CLUSTER'] = {
+            "properties" : {}
+        }
+
+        blueprint = r.json()
+        for config_item in blueprint['configurations']:
+            config_key = list(config_item.keys())[0]
+
+            component = 'Unknown'
+            if config_key == 'cluster-env':
+                component = 'CLUSTER'
+            else:
+                for component_key in component_configs:
+                    if config_key in component_configs[component_key]:
+                        component = component_key
+                        break
+
+            component_config_json[component]['properties'].update(config_item)
+            logging.info("{0} - {1}".format(component, config_key))
+
+        for component_key in component_config_json:
+
+            os.makedirs(os.path.join(config_folder, component_key), exist_ok=True)
+            config_file = os.path.join(config_folder, component_key, "{0}.json".format(component_key))
+            with open(config_file, 'w', encoding='UTF8') as file:
+                json.dump(component_config_json[component_key], file, sort_keys=True, indent=4, separators=(',', ': '))
