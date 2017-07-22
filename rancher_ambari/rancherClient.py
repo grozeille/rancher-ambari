@@ -27,13 +27,13 @@ class RancherClient:
 
         self.stack_id = None
         self.stack_name = stack_name
-        self.getStack()
+        self.get_stack()
 
     def close(self):
         self.session.close()
         self.stack_id = None
 
-    def getStack(self):
+    def get_stack(self):
 
         if self.stack_id != None:
             return True
@@ -52,9 +52,9 @@ class RancherClient:
         else:
             return False
 
-    def createNewStack(self, config_folder, cluster_size):
+    def create_new_stack(self, config_folder, cluster_size):
 
-        if self.getStack() == True:
+        if self.get_stack() == True:
             logging.info("Stack already created, skip")
             return
 
@@ -97,9 +97,9 @@ class RancherClient:
             stack_health_state = json_result['healthState']
             logging.info("Stack state: {0}".format(stack_health_state))
 
-    def getAmbariMasterIp(self):
+    def get_ambari_master_ip(self):
 
-        if self.getStack() == False:
+        if self.get_stack() == False:
             return None
 
         # get the ambari-server public IP

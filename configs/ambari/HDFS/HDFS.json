@@ -2,7 +2,7 @@
     "properties": {
         "core-site": {
             "properties": {
-                "fs.defaultFS": "hdfs://%HOSTGROUP::host_group_2%:8020",
+                "fs.defaultFS": "hdfs://%HOSTGROUP::host_group_namenode%:8020",
                 "fs.trash.interval": "360",
                 "ha.failover-controller.active-standby-elector.zk.op.retries": "120",
                 "hadoop.http.authentication.simple.anonymous.allowed": "true",
@@ -41,7 +41,7 @@
         },
         "hadoop-env": {
             "properties": {
-                "content": "",
+                "content": "hadoop-env.sh",
                 "dtnode_heapsize": "1024m",
                 "hadoop_heapsize": "2048",
                 "hadoop_pid_dir_prefix": "/var/run/hadoop",
@@ -81,7 +81,7 @@
         },
         "hdfs-log4j": {
             "properties": {
-                "content": ""
+                "content": "hdfs-log4j.properties"
             },
             "properties_attributes": {}
         },
@@ -126,13 +126,13 @@
                 "dfs.namenode.datanode.registration.ip-hostname-check": "false",
                 "dfs.namenode.fslock.fair": "false",
                 "dfs.namenode.handler.count": "100",
-                "dfs.namenode.http-address": "%HOSTGROUP::host_group_2%:50070",
-                "dfs.namenode.https-address": "%HOSTGROUP::host_group_2%:50470",
+                "dfs.namenode.http-address": "%HOSTGROUP::host_group_namenode%:50070",
+                "dfs.namenode.https-address": "%HOSTGROUP::host_group_namenode%:50470",
                 "dfs.namenode.name.dir": "/hadoop/hdfs/namenode",
                 "dfs.namenode.name.dir.restore": "true",
-                "dfs.namenode.rpc-address": "%HOSTGROUP::host_group_2%:8020",
+                "dfs.namenode.rpc-address": "%HOSTGROUP::host_group_namenode%:8020",
                 "dfs.namenode.safemode.threshold-pct": "1",
-                "dfs.namenode.secondary.http-address": "%HOSTGROUP::host_group_4%:50090",
+                "dfs.namenode.secondary.http-address": "%HOSTGROUP::host_group_secondarynamenode%:50090",
                 "dfs.namenode.stale.datanode.interval": "30000",
                 "dfs.namenode.startup.delay.block.deletion.sec": "3600",
                 "dfs.namenode.write.stale.datanode.ratio": "1.0f",

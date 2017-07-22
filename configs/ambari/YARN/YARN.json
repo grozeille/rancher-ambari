@@ -23,7 +23,7 @@
         },
         "mapred-env": {
             "properties": {
-                "content": "",
+                "content": "mapred-env.sh",
                 "jobhistory_heapsize": "900",
                 "mapred_log_dir_prefix": "/var/log/hadoop-mapreduce",
                 "mapred_pid_dir_prefix": "/var/run/hadoop-mapreduce",
@@ -47,7 +47,7 @@
                 "mapreduce.job.emit-timeline-data": "false",
                 "mapreduce.job.queuename": "default",
                 "mapreduce.job.reduce.slowstart.completedmaps": "0.05",
-                "mapreduce.jobhistory.address": "%HOSTGROUP::host_group_3%:10020",
+                "mapreduce.jobhistory.address": "%HOSTGROUP::host_group_resourcemanager%:10020",
                 "mapreduce.jobhistory.bind-host": "0.0.0.0",
                 "mapreduce.jobhistory.done-dir": "/mr-history/done",
                 "mapreduce.jobhistory.http.policy": "HTTP_ONLY",
@@ -55,7 +55,7 @@
                 "mapreduce.jobhistory.recovery.enable": "true",
                 "mapreduce.jobhistory.recovery.store.class": "org.apache.hadoop.mapreduce.v2.hs.HistoryServerLeveldbStateStoreService",
                 "mapreduce.jobhistory.recovery.store.leveldb.path": "/hadoop/mapreduce/jhs",
-                "mapreduce.jobhistory.webapp.address": "%HOSTGROUP::host_group_3%:19888",
+                "mapreduce.jobhistory.webapp.address": "%HOSTGROUP::host_group_resourcemanager%:19888",
                 "mapreduce.map.java.opts": "-Xmx409m",
                 "mapreduce.map.log.level": "INFO",
                 "mapreduce.map.memory.mb": "512",
@@ -134,7 +134,7 @@
         "yarn-env": {
             "properties": {
                 "apptimelineserver_heapsize": "1024",
-                "content": "",
+                "content": "yarn-env.sh",
                 "is_supported_yarn_ranger": "true",
                 "min_user_id": "1000",
                 "nodemanager_heapsize": "1024",
@@ -152,14 +152,14 @@
         },
         "yarn-log4j": {
             "properties": {
-                "content": ""
+                "content": "yarn-log4j.properties"
             },
             "properties_attributes": {}
         },
         "yarn-site": {
             "properties": {
                 "hadoop.registry.rm.enabled": "true",
-                "hadoop.registry.zk.quorum": "%HOSTGROUP::host_group_5%:2181",
+                "hadoop.registry.zk.quorum": "%HOSTGROUP::host_group_zookeeper%:2181",
                 "yarn.acl.enable": "false",
                 "yarn.admin.acl": "yarn",
                 "yarn.application.classpath": "$HADOOP_CONF_DIR,/usr/hdp/current/hadoop-client/*,/usr/hdp/current/hadoop-client/lib/*,/usr/hdp/current/hadoop-hdfs-client/*,/usr/hdp/current/hadoop-hdfs-client/lib/*,/usr/hdp/current/hadoop-yarn-client/*,/usr/hdp/current/hadoop-yarn-client/lib/*",
@@ -168,7 +168,7 @@
                 "yarn.http.policy": "HTTP_ONLY",
                 "yarn.log-aggregation-enable": "true",
                 "yarn.log-aggregation.retain-seconds": "2592000",
-                "yarn.log.server.url": "http://%HOSTGROUP::host_group_3%:19888/jobhistory/logs",
+                "yarn.log.server.url": "http://%HOSTGROUP::host_group_resourcemanager%:19888/jobhistory/logs",
                 "yarn.node-labels.enabled": "false",
                 "yarn.node-labels.fs-store.retry-policy-spec": "2000, 500",
                 "yarn.node-labels.fs-store.root-dir": "/system/yarn/node-labels",
@@ -210,8 +210,8 @@
                 "yarn.nodemanager.resource.percentage-physical-cpu-limit": "80",
                 "yarn.nodemanager.vmem-check-enabled": "false",
                 "yarn.nodemanager.vmem-pmem-ratio": "2.1",
-                "yarn.resourcemanager.address": "%HOSTGROUP::host_group_3%:8050",
-                "yarn.resourcemanager.admin.address": "%HOSTGROUP::host_group_3%:8141",
+                "yarn.resourcemanager.address": "%HOSTGROUP::host_group_resourcemanager%:8050",
+                "yarn.resourcemanager.admin.address": "%HOSTGROUP::host_group_resourcemanager%:8141",
                 "yarn.resourcemanager.am.max-attempts": "2",
                 "yarn.resourcemanager.bind-host": "0.0.0.0",
                 "yarn.resourcemanager.connect.max-wait.ms": "900000",
@@ -219,24 +219,24 @@
                 "yarn.resourcemanager.fs.state-store.retry-policy-spec": "2000, 500",
                 "yarn.resourcemanager.fs.state-store.uri": " ",
                 "yarn.resourcemanager.ha.enabled": "false",
-                "yarn.resourcemanager.hostname": "%HOSTGROUP::host_group_3%",
+                "yarn.resourcemanager.hostname": "%HOSTGROUP::host_group_resourcemanager%",
                 "yarn.resourcemanager.nodes.exclude-path": "/etc/hadoop/conf/yarn.exclude",
                 "yarn.resourcemanager.recovery.enabled": "true",
-                "yarn.resourcemanager.resource-tracker.address": "%HOSTGROUP::host_group_3%:8025",
-                "yarn.resourcemanager.scheduler.address": "%HOSTGROUP::host_group_3%:8030",
+                "yarn.resourcemanager.resource-tracker.address": "%HOSTGROUP::host_group_resourcemanager%:8025",
+                "yarn.resourcemanager.scheduler.address": "%HOSTGROUP::host_group_resourcemanager%:8030",
                 "yarn.resourcemanager.scheduler.class": "org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler",
                 "yarn.resourcemanager.scheduler.monitor.enable": "false",
                 "yarn.resourcemanager.state-store.max-completed-applications": "${yarn.resourcemanager.max-completed-applications}",
                 "yarn.resourcemanager.store.class": "org.apache.hadoop.yarn.server.resourcemanager.recovery.ZKRMStateStore",
                 "yarn.resourcemanager.system-metrics-publisher.dispatcher.pool-size": "10",
                 "yarn.resourcemanager.system-metrics-publisher.enabled": "true",
-                "yarn.resourcemanager.webapp.address": "%HOSTGROUP::host_group_3%:8088",
+                "yarn.resourcemanager.webapp.address": "%HOSTGROUP::host_group_resourcemanager%:8088",
                 "yarn.resourcemanager.webapp.delegation-token-auth-filter.enabled": "false",
-                "yarn.resourcemanager.webapp.https.address": "%HOSTGROUP::host_group_3%:8090",
+                "yarn.resourcemanager.webapp.https.address": "%HOSTGROUP::host_group_resourcemanager%:8090",
                 "yarn.resourcemanager.work-preserving-recovery.enabled": "true",
                 "yarn.resourcemanager.work-preserving-recovery.scheduling-wait-ms": "10000",
                 "yarn.resourcemanager.zk-acl": "world:anyone:rwcda",
-                "yarn.resourcemanager.zk-address": "%HOSTGROUP::host_group_5%:2181",
+                "yarn.resourcemanager.zk-address": "%HOSTGROUP::host_group_zookeeper%:2181",
                 "yarn.resourcemanager.zk-num-retries": "1000",
                 "yarn.resourcemanager.zk-retry-interval-ms": "1000",
                 "yarn.resourcemanager.zk-state-store.parent-path": "/rmstore",
@@ -245,7 +245,7 @@
                 "yarn.scheduler.maximum-allocation-vcores": "1",
                 "yarn.scheduler.minimum-allocation-mb": "512",
                 "yarn.scheduler.minimum-allocation-vcores": "1",
-                "yarn.timeline-service.address": "%HOSTGROUP::host_group_3%:10200",
+                "yarn.timeline-service.address": "%HOSTGROUP::host_group_resourcemanager%:10200",
                 "yarn.timeline-service.bind-host": "0.0.0.0",
                 "yarn.timeline-service.client.max-retries": "30",
                 "yarn.timeline-service.client.retry-interval-ms": "1000",
@@ -274,8 +274,8 @@
                 "yarn.timeline-service.ttl-enable": "true",
                 "yarn.timeline-service.ttl-ms": "2678400000",
                 "yarn.timeline-service.version": "1.5",
-                "yarn.timeline-service.webapp.address": "%HOSTGROUP::host_group_3%:8188",
-                "yarn.timeline-service.webapp.https.address": "%HOSTGROUP::host_group_3%:8190"
+                "yarn.timeline-service.webapp.address": "%HOSTGROUP::host_group_resourcemanager%:8188",
+                "yarn.timeline-service.webapp.https.address": "%HOSTGROUP::host_group_resourcemanager%:8190"
             },
             "properties_attributes": {}
         }

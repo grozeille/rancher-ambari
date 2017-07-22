@@ -18,13 +18,13 @@ class AmbariClient:
         })
         self.stack_name = stack_name
 
-    def createCluster(self, config_folder, cluster_size, hdp_repo_url=None, hdp_util_repo_url=None):
+    def create_cluster(self, config_folder, cluster_size, hdp_repo_url=None, hdp_util_repo_url=None):
 
         blueprint_file = os.path.join(config_folder, 'blueprint.json')
 
         # wait for ambari to be ready
         while True:
-            ready = self.checkForAmbari()
+            ready = self.check_for_ambari()
             time.sleep(10)
             if ready:
                 break
@@ -57,8 +57,7 @@ class AmbariClient:
                 data=json.dumps(repositories))
             r.raise_for_status()
 
-        with open(blueprint_file, 'r', encoding='UTF8') as file:
-            blueprint_json = json.load(file)
+        blueprint_json = self.build_config(config_folder)
 
         blueprint_name = 'blueprint'
 
@@ -104,12 +103,12 @@ class AmbariClient:
 
         if clusterRequest['Requests']['status'] != 'Accepted':
             logging.error(clusterRequest['Requests']['status'])
-            sys.exit(1)
+            raise Exception("Cluster creation request with bad status: "+clusterRequest['Requests']['status'])
 
         time.sleep(20)
 
         while True:
-            ready = self.checkForClusterRequest(clusterRequest['Requests']['id'])
+            ready = self.check_for_cluster_request(clusterRequest['Requests']['id'])
             time.sleep(10)
             if ready:
                 break
@@ -118,7 +117,7 @@ class AmbariClient:
 
         pass
 
-    def checkForAmbari(self):
+    def check_for_ambari(self):
         "wait for ambari to be ready"
         logging.info("Wait for ambari to be ready")
         try:
@@ -132,7 +131,7 @@ class AmbariClient:
             logging.error("Unexpected error:", sys.exc_info()[1])
             return False
 
-    def checkForClusterRequest(self, requestId):
+    def check_for_cluster_request(self, requestId):
         "wait for cluster to be ready"
         logging.info("Wait for cluster to be ready")
         r = self.session.get(self.ambari_url + '/api/v1/clusters/' + self.stack_name + '/requests/' + str(requestId))
@@ -143,21 +142,59 @@ class AmbariClient:
         else:
             return True
 
-    def dumpConfig(self, config_folder):
+
+    def build_config(self, config_folder):
+
+        blueprint_file = os.path.join(config_folder, "blueprint.json")
+        blueprint = {}
+
+        with open(blueprint_file, 'r', encoding='UTF8') as file:
+            blueprint = json.load(file)
+
+        # get the list of components to install
+        services = [ 'CLUSTER' ]
+        for host_group in blueprint["host_groups"]:
+            for service in host_group["components"]:
+                service = self.get_service_from_component(service['name'])
+                services.append(service)
+        services = list(set(services))
+
+        # get the configs for all these components and merge in the blueprint
+        for service in services:
+            config_json_file = os.path.join(config_folder, service, "{0}.json".format(service))
+
+            with open(config_json_file, 'r', encoding='UTF8') as file:
+                config = json.load(file)
+
+            for config_key in config["properties"]:
+
+                # read external files
+                for property_key in config["properties"][config_key]["properties"]:
+                    if property_key == "content":
+                        file_name = config["properties"][config_key]["properties"][property_key]
+                        file_path = os.path.join(config_folder, service, file_name)
+                        with open(file_path, 'r', encoding='UTF8') as file:
+                            config["properties"][config_key]["properties"][property_key] = file.read()
+
+                blueprint["configurations"].append({
+                    config_key : config["properties"][config_key]
+                })
+
+        return blueprint
+
+    def dump_config(self, config_folder):
         r = self.session.get(self.ambari_url + '/api/v1/clusters/' + self.stack_name + '?format=blueprint')
 
         r.raise_for_status()
 
+        service_configs = self.get_service_configs()
 
-        # split configs in several components
-        component_configs = self.getComponentConfigs()
-
-        component_config_json = {}
-        for component_key in component_configs:
-            component_config_json[component_key] = {
+        service_config_json = {}
+        for service_key in service_configs:
+            service_config_json[service_key] = {
                 "properties" : {}
             }
-        component_config_json['CLUSTER'] = {
+        service_config_json['CLUSTER'] = {
             "properties" : {}
         }
 
@@ -165,46 +202,47 @@ class AmbariClient:
         for config_item in blueprint['configurations']:
             config_key = list(config_item.keys())[0]
 
-            component = 'Unknown'
+            service = 'Unknown'
             if config_key == 'cluster-env':
-                component = 'CLUSTER'
+                service = 'CLUSTER'
             else:
-                for component_key in component_configs:
-                    if config_key in component_configs[component_key]:
-                        component = component_key
+                for service_key in service_configs:
+                    if config_key in service_configs[service_key]:
+                        service = service_key
                         break
 
-            if component == "Unknown":
+            if service == "Unknown":
                 logging.error("Unknown config: {0}".format(config_key))
                 raise Exception("Unknown config: {0}".format(config_key))
 
-            component_config_json[component]['properties'].update(config_item)
+            service_config_json[service]['properties'].update(config_item)
 
 
-        for component_key in component_config_json:
+        for service_key in service_config_json:
 
-            os.makedirs(os.path.join(config_folder, component_key), exist_ok=True)
+            os.makedirs(os.path.join(config_folder, service_key), exist_ok=True)
 
-            component_config = component_config_json[component_key]
-            for component_property in component_config["properties"]:
-                config = component_config["properties"][component_property]
+            service_config = service_config_json[service_key]
+            for service_property in service_config["properties"]:
+                config = service_config["properties"][service_property]
                 for property in config["properties"]:
                     if property == "content":
-                        extention = self.getPropertyExtensionFile(component_property)
+                        extention = self.get_property_extension_file(service_property)
 
-                        conent_file = os.path.join(config_folder, component_key, "{0}.{1}".format(component_property, extention))
+                        content_file = "{0}.{1}".format(service_property, extention)
+                        content_file_path = os.path.join(config_folder, service_key, content_file)
 
                         content = config["properties"][property]
-                        config["properties"][property] = ""
-                        with open(conent_file, 'w', encoding='UTF8') as file:
+                        config["properties"][property] = content_file
+                        with open(content_file_path, 'w', encoding='UTF8') as file:
                             file.write(content)
 
 
-            config_file = os.path.join(config_folder, component_key, "{0}.json".format(component_key))
+            config_file = os.path.join(config_folder, service_key, "{0}.json".format(service_key))
             with open(config_file, 'w', encoding='UTF8') as file:
-                json.dump(component_config_json[component_key], file, sort_keys=True, indent=4, separators=(',', ': '))
+                json.dump(service_config_json[service_key], file, sort_keys=True, indent=4, separators=(',', ': '))
 
-    def getPropertyExtensionFile(self, property):
+    def get_property_extension_file(self, property):
         if property.endswith('-env'):
             extention = "sh"
         elif property.endswith('-log4j'):
@@ -216,8 +254,8 @@ class AmbariClient:
 
         return extention
 
-    def getComponentConfigs(self):
-        component_configs = {
+    def get_service_configs(self):
+        service_configs = {
             'HDFS': [
                 "core-site",
                 "hdfs-site",
@@ -327,4 +365,41 @@ class AmbariClient:
             ]
         }
 
-        return component_configs
+        return service_configs
+
+    def get_service_from_component(self, component):
+        component_services = {
+            "HDFS": [
+                "NAMENODE",
+                "SECONDARY_NAMENODE",
+                "DATANODE",
+                "HDFS_CLIENT"
+            ],
+            "YARN": [
+                "NODEMANAGER",
+                "MAPREDUCE2_CLIENT",
+                "YARN_CLIENT",
+                "RESOURCEMANAGER",
+                "HISTORYSERVER",
+                "APP_TIMELINE_SERVER"
+            ],
+            "ZOOKEEPER": [
+                "ZOOKEEPER_SERVER",
+                "ZOOKEEPER_CLIENT"
+            ],
+            "PIG": [
+                "PIG"
+            ],
+            "TEZ": [
+                "TEZ_CLIENT"
+            ],
+            "SLIDER": [
+                "SLIDER"
+            ]
+        }
+
+        for service in component_services:
+            if component in component_services[service]:
+                return service
+
+        raise Exception("Unknown component {0}".format(component))

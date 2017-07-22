@@ -2,19 +2,19 @@
     "properties": {
         "pig-env": {
             "properties": {
-                "content": ""
+                "content": "pig-env.sh"
             },
             "properties_attributes": {}
         },
         "pig-log4j": {
             "properties": {
-                "content": ""
+                "content": "pig-log4j.properties"
             },
             "properties_attributes": {}
         },
         "pig-properties": {
             "properties": {
-                "content": ""
+                "content": "pig-properties.properties"
             },
             "properties_attributes": {}
         }

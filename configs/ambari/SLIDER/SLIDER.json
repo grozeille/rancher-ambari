@@ -6,13 +6,13 @@
         },
         "slider-env": {
             "properties": {
-                "content": ""
+                "content": "slider-env.sh"
             },
             "properties_attributes": {}
         },
         "slider-log4j": {
             "properties": {
-                "content": ""
+                "content": "slider-log4j.properties"
             },
             "properties_attributes": {}
         }

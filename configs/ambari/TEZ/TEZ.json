@@ -2,7 +2,7 @@
     "properties": {
         "tez-env": {
             "properties": {
-                "content": "",
+                "content": "tez-env.sh",
                 "tez_user": "tez"
             },
             "properties_attributes": {}
