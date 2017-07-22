@@ -2,7 +2,7 @@
     "properties": {
         "tez-env": {
             "properties": {
-                "content": "\n# Tez specific configuration\nexport TEZ_CONF_DIR={{config_dir}}\n\n# Set HADOOP_HOME to point to a specific hadoop install directory\nexport HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n\n# The java implementation to use.\nexport JAVA_HOME={{java64_home}}",
+                "content": "",
                 "tez_user": "tez"
             },
             "properties_attributes": {}

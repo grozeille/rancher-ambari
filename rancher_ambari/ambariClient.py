@@ -150,6 +150,73 @@ class AmbariClient:
 
 
         # split configs in several components
+        component_configs = self.getComponentConfigs()
+
+        component_config_json = {}
+        for component_key in component_configs:
+            component_config_json[component_key] = {
+                "properties" : {}
+            }
+        component_config_json['CLUSTER'] = {
+            "properties" : {}
+        }
+
+        blueprint = r.json()
+        for config_item in blueprint['configurations']:
+            config_key = list(config_item.keys())[0]
+
+            component = 'Unknown'
+            if config_key == 'cluster-env':
+                component = 'CLUSTER'
+            else:
+                for component_key in component_configs:
+                    if config_key in component_configs[component_key]:
+                        component = component_key
+                        break
+
+            if component == "Unknown":
+                logging.error("Unknown config: {0}".format(config_key))
+                raise Exception("Unknown config: {0}".format(config_key))
+
+            component_config_json[component]['properties'].update(config_item)
+
+
+        for component_key in component_config_json:
+
+            os.makedirs(os.path.join(config_folder, component_key), exist_ok=True)
+
+            component_config = component_config_json[component_key]
+            for component_property in component_config["properties"]:
+                config = component_config["properties"][component_property]
+                for property in config["properties"]:
+                    if property == "content":
+                        extention = self.getPropertyExtensionFile(component_property)
+
+                        conent_file = os.path.join(config_folder, component_key, "{0}.{1}".format(component_property, extention))
+
+                        content = config["properties"][property]
+                        config["properties"][property] = ""
+                        with open(conent_file, 'w', encoding='UTF8') as file:
+                            file.write(content)
+
+
+            config_file = os.path.join(config_folder, component_key, "{0}.json".format(component_key))
+            with open(config_file, 'w', encoding='UTF8') as file:
+                json.dump(component_config_json[component_key], file, sort_keys=True, indent=4, separators=(',', ': '))
+
+    def getPropertyExtensionFile(self, property):
+        if property.endswith('-env'):
+            extention = "sh"
+        elif property.endswith('-log4j'):
+            extention = "properties"
+        elif property.endswith('-properties'):
+            extention = "properties"
+        else:
+            extention = "txt"
+
+        return extention
+
+    def getComponentConfigs(self):
         component_configs = {
             'HDFS': [
                 "core-site",
@@ -260,34 +327,4 @@ class AmbariClient:
             ]
         }
 
-        component_config_json = {}
-        for component_key in component_configs:
-            component_config_json[component_key] = {
-                "properties" : {}
-            }
-        component_config_json['CLUSTER'] = {
-            "properties" : {}
-        }
-
-        blueprint = r.json()
-        for config_item in blueprint['configurations']:
-            config_key = list(config_item.keys())[0]
-
-            component = 'Unknown'
-            if config_key == 'cluster-env':
-                component = 'CLUSTER'
-            else:
-                for component_key in component_configs:
-                    if config_key in component_configs[component_key]:
-                        component = component_key
-                        break
-
-            component_config_json[component]['properties'].update(config_item)
-            logging.info("{0} - {1}".format(component, config_key))
-
-        for component_key in component_config_json:
-
-            os.makedirs(os.path.join(config_folder, component_key), exist_ok=True)
-            config_file = os.path.join(config_folder, component_key, "{0}.json".format(component_key))
-            with open(config_file, 'w', encoding='UTF8') as file:
-                json.dump(component_config_json[component_key], file, sort_keys=True, indent=4, separators=(',', ': '))
+        return component_configs
