@@ -191,7 +191,6 @@
         },
         "ranger-hdfs-plugin-properties": {
             "properties": {
-                "REPOSITORY_CONFIG_PASSWORD": "SECRET:ranger-hdfs-plugin-properties:2:REPOSITORY_CONFIG_PASSWORD",
                 "REPOSITORY_CONFIG_USERNAME": "hadoop",
                 "common.name.for.certificate": "",
                 "hadoop.rpc.protection": "authentication",
@@ -204,10 +203,8 @@
             "properties": {
                 "xasecure.policymgr.clientssl.keystore": "/usr/hdp/current/hadoop-client/conf/ranger-plugin-keystore.jks",
                 "xasecure.policymgr.clientssl.keystore.credential.file": "jceks://file{{credential_file}}",
-                "xasecure.policymgr.clientssl.keystore.password": "SECRET:ranger-hdfs-policymgr-ssl:2:xasecure.policymgr.clientssl.keystore.password",
                 "xasecure.policymgr.clientssl.truststore": "/usr/hdp/current/hadoop-client/conf/ranger-plugin-truststore.jks",
-                "xasecure.policymgr.clientssl.truststore.credential.file": "jceks://file{{credential_file}}",
-                "xasecure.policymgr.clientssl.truststore.password": "SECRET:ranger-hdfs-policymgr-ssl:2:xasecure.policymgr.clientssl.truststore.password"
+                "xasecure.policymgr.clientssl.truststore.credential.file": "jceks://file{{credential_file}}"
             },
             "properties_attributes": {}
         },
@@ -226,10 +223,8 @@
         "ssl-client": {
             "properties": {
                 "ssl.client.keystore.location": "/etc/security/clientKeys/keystore.jks",
-                "ssl.client.keystore.password": "SECRET:ssl-client:2:ssl.client.keystore.password",
                 "ssl.client.keystore.type": "jks",
                 "ssl.client.truststore.location": "/etc/security/clientKeys/all.jks",
-                "ssl.client.truststore.password": "SECRET:ssl-client:2:ssl.client.truststore.password",
                 "ssl.client.truststore.reload.interval": "10000",
                 "ssl.client.truststore.type": "jks"
             },
@@ -237,12 +232,9 @@
         },
         "ssl-server": {
             "properties": {
-                "ssl.server.keystore.keypassword": "SECRET:ssl-server:2:ssl.server.keystore.keypassword",
                 "ssl.server.keystore.location": "/etc/security/serverKeys/keystore.jks",
-                "ssl.server.keystore.password": "SECRET:ssl-server:2:ssl.server.keystore.password",
                 "ssl.server.keystore.type": "jks",
                 "ssl.server.truststore.location": "/etc/security/serverKeys/all.jks",
-                "ssl.server.truststore.password": "SECRET:ssl-server:2:ssl.server.truststore.password",
                 "ssl.server.truststore.reload.interval": "10000",
                 "ssl.server.truststore.type": "jks"
             },

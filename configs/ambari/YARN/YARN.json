@@ -37,7 +37,6 @@
         },
         "ranger-yarn-plugin-properties": {
             "properties": {
-                "REPOSITORY_CONFIG_PASSWORD": "SECRET:ranger-yarn-plugin-properties:2:REPOSITORY_CONFIG_PASSWORD",
                 "REPOSITORY_CONFIG_USERNAME": "yarn",
                 "common.name.for.certificate": "",
                 "hadoop.rpc.protection": "",
@@ -50,10 +49,8 @@
             "properties": {
                 "xasecure.policymgr.clientssl.keystore": "/usr/hdp/current/hadoop-client/conf/ranger-yarn-plugin-keystore.jks",
                 "xasecure.policymgr.clientssl.keystore.credential.file": "jceks://file{{credential_file}}",
-                "xasecure.policymgr.clientssl.keystore.password": "SECRET:ranger-yarn-policymgr-ssl:2:xasecure.policymgr.clientssl.keystore.password",
                 "xasecure.policymgr.clientssl.truststore": "/usr/hdp/current/hadoop-client/conf/ranger-yarn-plugin-truststore.jks",
-                "xasecure.policymgr.clientssl.truststore.credential.file": "jceks://file{{credential_file}}",
-                "xasecure.policymgr.clientssl.truststore.password": "SECRET:ranger-yarn-policymgr-ssl:2:xasecure.policymgr.clientssl.truststore.password"
+                "xasecure.policymgr.clientssl.truststore.credential.file": "jceks://file{{credential_file}}"
             },
             "properties_attributes": {}
         },
