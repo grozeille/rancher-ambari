@@ -14,7 +14,7 @@ services:
       io.rancher.scheduler.affinity:host_label: ambari=server
   ambari-server:
     privileged: true
-    image: hortonworks/ambari-server
+    image: grozeille/ambari-server:2.5.1.0-v1
     stdin_open: true
     tty: true
     ports:
@@ -30,7 +30,7 @@ services:
       io.rancher.scheduler.affinity:host_label: ambari=server
   ambari-agent-namenode:
     privileged: true
-    image: hortonworks/ambari-agent
+    image: grozeille/ambari-agent:2.5.1.0-v1
     stdin_open: true
     volumes:
     - /mnt/sda1/hadoop:/hadoop
@@ -48,7 +48,7 @@ services:
       io.rancher.scheduler.affinity:host_label: hadoop=master
   ambari-agent-secondarynamenode:
     privileged: true
-    image: hortonworks/ambari-agent
+    image: grozeille/ambari-agent:2.5.1.0-v1
     stdin_open: true
     volumes:
     - /mnt/sda1/hadoop:/hadoop
@@ -64,7 +64,7 @@ services:
       io.rancher.scheduler.affinity:host_label: hadoop=master
   ambari-agent-resourcemanager:
     privileged: true
-    image: hortonworks/ambari-agent
+    image: grozeille/ambari-agent:2.5.1.0-v1
     stdin_open: true
     volumes:
     - /mnt/sda1/hadoop:/hadoop
@@ -83,7 +83,7 @@ services:
       io.rancher.scheduler.affinity:host_label: hadoop=master
   ambari-agent-zookeeper:
     privileged: true
-    image: hortonworks/ambari-agent
+    image: grozeille/ambari-agent:2.5.1.0-v1
     stdin_open: true
     volumes:
     - /mnt/sda1/hadoop:/hadoop
@@ -99,7 +99,7 @@ services:
       io.rancher.scheduler.affinity:host_label: hadoop=master
   ambari-agent-datanode:
     privileged: true
-    image: hortonworks/ambari-agent
+    image: grozeille/ambari-agent:2.5.1.0-v1
     stdin_open: true
     volumes:
     - /mnt/sda1/hadoop:/hadoop

@@ -40,7 +40,7 @@ class AmbariClient:
                 }
             }
             r = self.session.put(
-                self.ambari_url + '/api/v1/stacks/HDP/versions/2.5/operating_systems/redhat7/repositories/HDP-2.5',
+                self.ambari_url + '/api/v1/stacks/HDP/versions/2.6/operating_systems/redhat7/repositories/HDP-2.6',
                 data=json.dumps(repositories))
             r.raise_for_status()
 
@@ -53,7 +53,7 @@ class AmbariClient:
                 }
             }
             r = self.session.put(
-                self.ambari_url + '/api/v1/stacks/HDP/versions/2.5/operating_systems/redhat7/repositories/HDP-UTILS-1.1.0.21',
+                self.ambari_url + '/api/v1/stacks/HDP/versions/2.6/operating_systems/redhat7/repositories/HDP-UTILS-1.1.0.21',
                 data=json.dumps(repositories))
             r.raise_for_status()
 
@@ -141,6 +141,8 @@ class AmbariClient:
             service_name = service["ServiceInfo"]["service_name"]
             installed_service_configs[service_name] = service_configs[service_name]
 
+        current_ts = int(time.time()*1000)
+
         for service in installed_service_configs:
             for configuration in installed_service_configs[service]:
                 desired_config = desired_configs[configuration]
@@ -151,13 +153,22 @@ class AmbariClient:
                 original_config = r.json()["items"][0]
                 new_config = new_configs[configuration]
 
-                #logging.info(new_configs)
-                #logging.info(original_config)
-
                 diff_config = self.get_config_diff(original_config, new_config, cluster_size)
 
-                logging.info(diff_config)
-
+                if diff_config != None:
+                    update_config = {
+                        "Clusters": {
+                            "desired_config": {
+                                "type": configuration,
+                                'tag': "version{0}".format(current_ts),
+                                'service_config_version_note': "Automation script"
+                            }
+                        }
+                    }
+                    update_config["Clusters"]["desired_config"].update(diff_config)
+                    logging.info("Applying new configuration for "+configuration+" : "+json.dumps(update_config))
+                    r = self.session.put(self.ambari_url + "/api/v1/clusters/{0}".format(self.stack_name), data=json.dumps(update_config))
+                    r.raise_for_status()
 
     def get_config_diff(self, original, new, cluster_size):
         contains_diff = False
@@ -177,7 +188,7 @@ class AmbariClient:
             original_value = original["properties"][key]
             new_value = new["properties"].get(key)
             if new_value != None:
-                new_value = self.replace_host(new_value, host_groups)
+                new_value = self.replace_group_to_host(new_value, host_groups)
 
                 if original_value != new_value:
                     diff["properties"][key] = new_value
@@ -188,13 +199,23 @@ class AmbariClient:
         else:
             return None
 
-    def replace_host(self, value, host_groups):
+    def replace_group_to_host(self, value, host_groups):
 
         for host_group in host_groups:
             name = host_group["name"]
             hosts = list(map(lambda h: h["fqdn"], host_group["hosts"]))
             hosts_string = ','.join(hosts)
             value = value.replace("%HOSTGROUP::{0}%".format(name), hosts_string)
+
+        return value
+
+    def replace_host_to_group(self, value, host_groups):
+
+        for host_group in host_groups:
+            name = host_group["name"]
+            hosts = list(map(lambda h: h["fqdn"], host_group["hosts"]))
+            hosts_string = ','.join(hosts)
+            value = value.replace(hosts_string, "%HOSTGROUP::{0}%".format(name))
 
         return value
 
@@ -222,7 +243,6 @@ class AmbariClient:
             return False
         else:
             return True
-
 
     def build_config(self, config_folder):
 
@@ -263,7 +283,7 @@ class AmbariClient:
 
         return blueprint
 
-    def dump_config(self, config_folder):
+    def dump_config(self, config_folder, cluster_size):
         r = self.session.get(self.ambari_url + '/api/v1/clusters/' + self.stack_name + '?fields=service_config_versions,Clusters/desired_service_config_versions')
 
         r.raise_for_status()
@@ -272,6 +292,8 @@ class AmbariClient:
 
         # get all services with theirs configs
         service_configs = self.get_service_configs()
+
+        host_groups = self.build_host_groups(cluster_size)
 
         # build a json per service with all configs
         service_config_json = {}
@@ -302,7 +324,12 @@ class AmbariClient:
                     "properties_attributes": {}
                 }
 
-                service_config_json[config_key]['properties'][config['type']]['properties'] = config["properties"]
+                for property in config["properties"]:
+                    if config["properties"][property].startswith('SECRET:'):
+                        logging.info("Ignoring secret property {0} - {1}".format(config['type'], property))
+                    else:
+                        service_config_json[config_key]['properties'][config['type']]['properties'][property] =  config["properties"][property]
+
                 service_config_json[config_key]['properties'][config['type']]['properties_attributes'] = config["properties_attributes"]
 
 
@@ -318,13 +345,15 @@ class AmbariClient:
                     if property == "content":
                         extention = self.get_property_extension_file(service_property)
 
-                        content_file = "{0}.{1}".format(service_property, extention)
+                        content_file = "{0}{1}".format(service_property, extention)
                         content_file_path = os.path.join(config_folder, service_key, content_file)
 
                         content = config["properties"][property]
                         config["properties"][property] = content_file
                         with open(content_file_path, 'w', encoding='UTF8') as file:
                             file.write(content)
+                    else:
+                        config["properties"][property] = self.replace_host_to_group(config["properties"][property], host_groups)
 
 
             config_file = os.path.join(config_folder, service_key, "{0}.json".format(service_key))
@@ -333,13 +362,17 @@ class AmbariClient:
 
     def get_property_extension_file(self, property):
         if property.endswith('-env'):
-            extention = "sh"
+            extention = ".sh"
         elif property.endswith('-log4j'):
-            extention = "properties"
+            extention = ".properties"
         elif property.endswith('-properties'):
-            extention = "properties"
+            extention = ".properties"
+        elif property.endswith('.properties'):
+            extention = ""
+        elif property.endswith('-logsearch-conf'):
+            extention = ".json"
         else:
-            extention = "txt"
+            extention = ".txt"
 
         return extention
 
