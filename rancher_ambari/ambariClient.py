@@ -165,7 +165,13 @@ class AmbariClient:
                             }
                         }
                     }
-                    update_config["Clusters"]["desired_config"].update(diff_config)
+                    update_config["Clusters"]["desired_config"]["properties"] = original_config["properties"]
+                    for key in diff_config["properties"]:
+                        update_config["Clusters"]["desired_config"]["properties"][key] = diff_config["properties"][key]
+
+                    for key in diff_config["properties_attributes"]:
+                        update_config["Clusters"]["desired_config"]["properties_attributes"][key] = diff_config["properties_attributes"][key]
+
                     logging.info("Applying new configuration for "+configuration+" : "+json.dumps(update_config))
                     r = self.session.put(self.ambari_url + "/api/v1/clusters/{0}".format(self.stack_name), data=json.dumps(update_config))
                     r.raise_for_status()
