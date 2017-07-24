@@ -24,7 +24,17 @@
         },
         "zookeeper-log4j": {
             "properties": {
-                "content": "zookeeper-log4j.properties"
+                "content": "zookeeper-log4j.properties",
+                "zookeeper_log_max_backup_size": "10",
+                "zookeeper_log_number_of_backup_files": "10"
+            },
+            "properties_attributes": {}
+        },
+        "zookeeper-logsearch-conf": {
+            "properties": {
+                "component_mappings": "ZOOKEEPER_SERVER:zookeeper",
+                "content": "zookeeper-logsearch-conf.json",
+                "service_name": "Zookeeper"
             },
             "properties_attributes": {}
         }

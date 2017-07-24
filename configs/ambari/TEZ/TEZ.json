@@ -3,6 +3,8 @@
         "tez-env": {
             "properties": {
                 "content": "tez-env.sh",
+                "enable_heap_dump": "false",
+                "heap_dump_location": "/tmp",
                 "tez_user": "tez"
             },
             "properties_attributes": {}
@@ -33,6 +35,7 @@
                 "tez.grouping.min-size": "16777216",
                 "tez.grouping.split-waves": "1.7",
                 "tez.history.logging.service.class": "org.apache.tez.dag.history.logging.ats.ATSV15HistoryLoggingService",
+                "tez.history.logging.timeline-cache-plugin.old-num-dags-per-group": "5",
                 "tez.lib.uris": "/hdp/apps/${hdp.version}/tez/tez.tar.gz",
                 "tez.queue.name": "default",
                 "tez.runtime.compress": "true",

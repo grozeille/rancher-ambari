@@ -2,7 +2,7 @@
     "properties": {
         "core-site": {
             "properties": {
-                "fs.defaultFS": "hdfs://hdp-ambari-agent-namenode-1:8020",
+                "fs.defaultFS": "hdfs://%HOSTGROUP::host_group_namenode%:8020",
                 "fs.trash.interval": "360",
                 "ha.failover-controller.active-standby-elector.zk.op.retries": "120",
                 "hadoop.http.authentication.simple.anonymous.allowed": "true",
@@ -53,13 +53,20 @@
                 "hdfs_user_nproc_limit": "65536",
                 "keyserver_host": " ",
                 "keyserver_port": "",
+                "namenode_backup_dir": "/tmp/upgrades",
                 "namenode_heapsize": "2048m",
-                "namenode_opt_maxnewsize": "128m",
+                "namenode_opt_maxnewsize": "256m",
                 "namenode_opt_maxpermsize": "256m",
                 "namenode_opt_newsize": "128m",
                 "namenode_opt_permsize": "128m",
                 "nfsgateway_heapsize": "1024",
                 "proxyuser_group": "users"
+            },
+            "properties_attributes": {}
+        },
+        "hadoop-metrics2.properties": {
+            "properties": {
+                "content": "hadoop-metrics2.properties"
             },
             "properties_attributes": {}
         },
@@ -81,7 +88,19 @@
         },
         "hdfs-log4j": {
             "properties": {
-                "content": "hdfs-log4j.properties"
+                "content": "hdfs-log4j.properties",
+                "hadoop_log_max_backup_size": "256",
+                "hadoop_log_number_of_backup_files": "10",
+                "hadoop_security_log_max_backup_size": "256",
+                "hadoop_security_log_number_of_backup_files": "20"
+            },
+            "properties_attributes": {}
+        },
+        "hdfs-logsearch-conf": {
+            "properties": {
+                "component_mappings": "NAMENODE:hdfs_namenode;DATANODE:hdfs_datanode;SECONDARY_NAMENODE:hdfs_secondarynamenode;JOURNALNODE:hdfs_journalnode;ZKFC:hdfs_zkfc;NFS_GATEWAY:hdfs_nfs3",
+                "content": "hdfs-logsearch-conf.json",
+                "service_name": "HDFS"
             },
             "properties_attributes": {}
         },
@@ -126,13 +145,13 @@
                 "dfs.namenode.datanode.registration.ip-hostname-check": "false",
                 "dfs.namenode.fslock.fair": "false",
                 "dfs.namenode.handler.count": "100",
-                "dfs.namenode.http-address": "hdp-ambari-agent-namenode-1:50070",
-                "dfs.namenode.https-address": "hdp-ambari-agent-namenode-1:50470",
+                "dfs.namenode.http-address": "%HOSTGROUP::host_group_namenode%:50070",
+                "dfs.namenode.https-address": "%HOSTGROUP::host_group_namenode%:50470",
                 "dfs.namenode.name.dir": "/hadoop/hdfs/namenode",
                 "dfs.namenode.name.dir.restore": "true",
-                "dfs.namenode.rpc-address": "hdp-ambari-agent-namenode-1:8020",
+                "dfs.namenode.rpc-address": "%HOSTGROUP::host_group_namenode%:8020",
                 "dfs.namenode.safemode.threshold-pct": "1",
-                "dfs.namenode.secondary.http-address": "hdp-ambari-agent-secondarynamenode-1:50090",
+                "dfs.namenode.secondary.http-address": "%HOSTGROUP::host_group_secondarynamenode%:50090",
                 "dfs.namenode.stale.datanode.interval": "30000",
                 "dfs.namenode.startup.delay.block.deletion.sec": "3600",
                 "dfs.namenode.write.stale.datanode.ratio": "1.0f",
@@ -143,6 +162,7 @@
                 "dfs.support.append": "true",
                 "dfs.webhdfs.enabled": "true",
                 "fs.permissions.umask-mode": "022",
+                "hadoop.caller.context.enabled": "true",
                 "nfs.exports.allowed.hosts": "* rw",
                 "nfs.file.dump.dir": "/tmp/.hdfs-nfs"
             },
@@ -177,6 +197,7 @@
         },
         "ranger-hdfs-audit": {
             "properties": {
+                "ranger.plugin.hdfs.ambari.cluster.name": "{{cluster_name}}",
                 "xasecure.audit.destination.hdfs": "true",
                 "xasecure.audit.destination.hdfs.batch.filespool.dir": "/var/log/hadoop/hdfs/audit/hdfs/spool",
                 "xasecure.audit.destination.hdfs.dir": "hdfs://NAMENODE_HOSTNAME:8020/ranger/audit",
@@ -193,6 +214,10 @@
             "properties": {
                 "REPOSITORY_CONFIG_USERNAME": "hadoop",
                 "common.name.for.certificate": "",
+                "external_admin_password": "",
+                "external_admin_username": "",
+                "external_ranger_admin_password": "",
+                "external_ranger_admin_username": "",
                 "hadoop.rpc.protection": "authentication",
                 "policy_user": "ambari-qa",
                 "ranger-hdfs-plugin-enabled": "No"
