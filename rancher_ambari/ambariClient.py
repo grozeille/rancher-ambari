@@ -296,20 +296,10 @@ class AmbariClient:
 
         service_json = r.json()
 
-        # get all services with theirs configs
-        service_configs = self.get_service_configs()
-
         host_groups = self.build_host_groups(cluster_size)
 
         # build a json per service with all configs
         service_config_json = {}
-        for service_key in service_configs:
-            service_config_json[service_key] = {
-                "properties" : {}
-            }
-        service_config_json['CLUSTER'] = {
-            "properties" : {}
-        }
 
         # get the last version of the service configs
         service_config_version = {}
@@ -325,6 +315,10 @@ class AmbariClient:
                 continue
 
             for config in config_item["configurations"]:
+                if service_config_json.get(config_key) is None:
+                    service_config_json[config_key] = {
+                        "properties" : {}
+                    }
                 service_config_json[config_key]['properties'][config['type']] = {
                     "properties": {},
                     "properties_attributes": {}
