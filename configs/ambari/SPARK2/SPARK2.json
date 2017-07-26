@@ -1,0 +1,135 @@
+{
+    "properties": {
+        "livy2-conf": {
+            "properties": {
+                "livy.environment": "production",
+                "livy.impersonation.enabled": "true",
+                "livy.repl.enableHiveContext": "true",
+                "livy.server.csrf_protection.enabled": "true",
+                "livy.server.port": "8999",
+                "livy.server.recovery.mode": "recovery",
+                "livy.server.recovery.state-store": "filesystem",
+                "livy.server.recovery.state-store.url": "/livy2-recovery",
+                "livy.server.session.timeout": "3600000",
+                "livy.spark.master": "yarn-cluster"
+            },
+            "properties_attributes": {}
+        },
+        "livy2-env": {
+            "properties": {
+                "content": "livy2-env.sh",
+                "livy2_group": "livy",
+                "livy2_log_dir": "/var/log/livy2",
+                "livy2_pid_dir": "/var/run/livy2",
+                "livy2_user": "livy",
+                "spark_home": "/usr/hdp/current/spark2-client"
+            },
+            "properties_attributes": {}
+        },
+        "livy2-log4j-properties": {
+            "properties": {
+                "content": "livy2-log4j-properties.properties"
+            },
+            "properties_attributes": {}
+        },
+        "livy2-spark-blacklist": {
+            "properties": {
+                "content": "livy2-spark-blacklist.properties"
+            },
+            "properties_attributes": {}
+        },
+        "spark2-defaults": {
+            "properties": {
+                "spark.driver.extraLibraryPath": "{{spark_hadoop_lib_native}}",
+                "spark.eventLog.dir": "hdfs:///spark2-history/",
+                "spark.eventLog.enabled": "true",
+                "spark.executor.extraLibraryPath": "{{spark_hadoop_lib_native}}",
+                "spark.history.fs.logDirectory": "hdfs:///spark2-history/",
+                "spark.history.kerberos.keytab": "none",
+                "spark.history.kerberos.principal": "none",
+                "spark.history.provider": "org.apache.spark.deploy.history.FsHistoryProvider",
+                "spark.history.ui.port": "18081",
+                "spark.yarn.historyServer.address": "{{spark_history_server_host}}:{{spark_history_ui_port}}",
+                "spark.yarn.queue": "default"
+            },
+            "properties_attributes": {}
+        },
+        "spark2-env": {
+            "properties": {
+                "content": "spark2-env.sh",
+                "hive_kerberos_keytab": "{{hive_kerberos_keytab}}",
+                "hive_kerberos_principal": "{{hive_kerberos_principal}}",
+                "spark_daemon_memory": "1024",
+                "spark_group": "spark",
+                "spark_log_dir": "/var/log/spark2",
+                "spark_pid_dir": "/var/run/spark2",
+                "spark_thrift_cmd_opts": "",
+                "spark_user": "spark"
+            },
+            "properties_attributes": {}
+        },
+        "spark2-hive-site-override": {
+            "properties": {
+                "hive.metastore.client.connect.retry.delay": "5",
+                "hive.metastore.client.socket.timeout": "1800",
+                "hive.server2.enable.doAs": "false",
+                "hive.server2.thrift.port": "10016",
+                "hive.server2.transport.mode": "binary"
+            },
+            "properties_attributes": {}
+        },
+        "spark2-log4j-properties": {
+            "properties": {
+                "content": "spark2-log4j-properties.properties"
+            },
+            "properties_attributes": {}
+        },
+        "spark2-logsearch-conf": {
+            "properties": {
+                "component_mappings": "SPARK2_JOBHISTORYSERVER:spark2_jobhistory_server;SPARK2_THRIFTSERVER:spark2_thriftserver;LIVY2_SERVER:livy2_server",
+                "content": "spark2-logsearch-conf.json",
+                "service_name": "Spark2"
+            },
+            "properties_attributes": {}
+        },
+        "spark2-metrics-properties": {
+            "properties": {
+                "content": "spark2-metrics-properties.properties"
+            },
+            "properties_attributes": {}
+        },
+        "spark2-thrift-fairscheduler": {
+            "properties": {
+                "fairscheduler_content": "<?xml version=\"1.0\"?>\n            <allocations>\n            <pool name=\"default\">\n            <schedulingMode>FAIR</schedulingMode>\n            <weight>1</weight>\n            <minShare>2</minShare>\n            </pool>\n            </allocations>"
+            },
+            "properties_attributes": {}
+        },
+        "spark2-thrift-sparkconf": {
+            "properties": {
+                "spark.driver.extraLibraryPath": "{{spark_hadoop_lib_native}}",
+                "spark.dynamicAllocation.enabled": "true",
+                "spark.dynamicAllocation.initialExecutors": "0",
+                "spark.dynamicAllocation.maxExecutors": "10",
+                "spark.dynamicAllocation.minExecutors": "0",
+                "spark.eventLog.dir": "{{spark_history_dir}}",
+                "spark.eventLog.enabled": "true",
+                "spark.executor.extraLibraryPath": "{{spark_hadoop_lib_native}}",
+                "spark.hadoop.cacheConf": "false",
+                "spark.history.fs.logDirectory": "{{spark_history_dir}}",
+                "spark.history.provider": "org.apache.spark.deploy.history.FsHistoryProvider",
+                "spark.master": "{{spark_thrift_master}}",
+                "spark.scheduler.allocation.file": "{{spark_conf}}/spark-thrift-fairscheduler.xml",
+                "spark.scheduler.mode": "FAIR",
+                "spark.shuffle.service.enabled": "true",
+                "spark.yarn.queue": "default"
+            },
+            "properties_attributes": {
+                "final": {
+                    "spark.eventLog.dir": "true",
+                    "spark.eventLog.enabled": "true",
+                    "spark.history.fs.logDirectory": "true"
+                }
+            }
+        }
+    }
+}

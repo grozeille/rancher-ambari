@@ -32,8 +32,6 @@ services:
     privileged: true
     image: grozeille/ambari-agent:2.5.1.0-v1
     stdin_open: true
-    volumes:
-    - /mnt/sda1/hadoop:/hadoop
     tty: true
     ports:
     - 50070:50070/tcp
@@ -50,8 +48,6 @@ services:
     privileged: true
     image: grozeille/ambari-agent:2.5.1.0-v1
     stdin_open: true
-    volumes:
-    - /mnt/sda1/hadoop:/hadoop
     tty: true
     links:
     - ambari-server:ambari-server
@@ -66,8 +62,6 @@ services:
     privileged: true
     image: grozeille/ambari-agent:2.5.1.0-v1
     stdin_open: true
-    volumes:
-    - /mnt/sda1/hadoop:/hadoop
     tty: true
     ports:
     - 8088:8088/tcp
@@ -85,8 +79,6 @@ services:
     privileged: true
     image: grozeille/ambari-agent:2.5.1.0-v1
     stdin_open: true
-    volumes:
-    - /mnt/sda1/hadoop:/hadoop
     tty: true
     ports:
     - 18080:18080/tcp
@@ -104,8 +96,6 @@ services:
     privileged: true
     image: grozeille/ambari-agent:2.5.1.0-v1
     stdin_open: true
-    volumes:
-    - /mnt/sda1/hadoop:/hadoop
     tty: true
     links:
     - ambari-server:ambari-server
@@ -132,8 +122,6 @@ services:
     privileged: true
     image: grozeille/ambari-agent:2.5.1.0-v1
     stdin_open: true
-    volumes:
-    - /mnt/sda1/hadoop:/hadoop
     tty: true
     links:
     - ambari-server:ambari-server

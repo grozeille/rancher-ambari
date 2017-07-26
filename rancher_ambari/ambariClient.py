@@ -123,9 +123,10 @@ class AmbariClient:
 
     def update_cluster(self, config_folder, cluster_size):
 
-        r = self.session.get(self.ambari_url+"/api/v1/clusters/hdp?fields=Clusters/desired_configs,services")
+        r = self.session.get(self.ambari_url + '/api/v1/clusters/' + self.stack_name + '?fields=service_config_versions,Clusters/desired_service_config_versions')
         r.raise_for_status()
-        desired_configs = r.json()["Clusters"]["desired_configs"]
+
+        service_json = r.json()
 
         blueprint = self.build_config(config_folder)
 
@@ -134,24 +135,24 @@ class AmbariClient:
             config_key = list(config_item.keys())[0]
             new_configs[config_key] = config_item[config_key]
 
-        service_configs = self.get_service_configs()
-
-        installed_service_configs = {}
-        for service in r.json()["services"]:
-            service_name = service["ServiceInfo"]["service_name"]
-            installed_service_configs[service_name] = service_configs[service_name]
-
         current_ts = int(time.time()*1000)
 
-        for service in installed_service_configs:
-            for configuration in installed_service_configs[service]:
-                desired_config = desired_configs[configuration]
-                tag = desired_config["tag"]
-                r = self.session.get(self.ambari_url+"/api/v1/clusters/{0}/configurations?type={1}&tag={2}".format(self.stack_name, configuration, tag))
-                r.raise_for_status()
+        # get the last version of the service configs
+        service_config_version = {}
+        for item in service_json["Clusters"]["desired_service_config_versions"]:
+            service_config_version[item] = service_json["Clusters"]["desired_service_config_versions"][item][0]["service_config_version"]
 
-                original_config = r.json()["items"][0]
-                new_config = new_configs[configuration]
+        # create the configs json for each services
+        service_configuration = service_json["service_config_versions"]
+        for config_item in service_configuration:
+            config_key = config_item["service_name"]
+
+            if service_config_version[config_key] != config_item["service_config_version"]:
+                continue
+
+            for config in config_item["configurations"]:
+                original_config = config
+                new_config = new_configs[config["type"]]
 
                 diff_config = self.get_config_diff(original_config, new_config, cluster_size)
 
@@ -159,7 +160,7 @@ class AmbariClient:
                     update_config = {
                         "Clusters": {
                             "desired_config": {
-                                "type": configuration,
+                                "type": config["type"],
                                 'tag': "version{0}".format(current_ts),
                                 'service_config_version_note': "Automation script"
                             }
@@ -172,7 +173,7 @@ class AmbariClient:
                     for key in diff_config["properties_attributes"]:
                         update_config["Clusters"]["desired_config"]["properties_attributes"][key] = diff_config["properties_attributes"][key]
 
-                    logging.info("Applying new configuration for "+configuration+" : "+json.dumps(update_config))
+                    logging.info("Applying new configuration for "+config["type"]+" : "+json.dumps(update_config))
                     r = self.session.put(self.ambari_url + "/api/v1/clusters/{0}".format(self.stack_name), data=json.dumps(update_config))
                     r.raise_for_status()
 
@@ -255,7 +256,7 @@ class AmbariClient:
         blueprint_file = os.path.join(config_folder, "blueprint.json")
         blueprint = {}
 
-        with open(blueprint_file, 'r', encoding='UTF8') as file:
+        with open(blueprint_file, 'r') as file:
             blueprint = json.load(file)
 
         # get the list of components to install
@@ -270,7 +271,7 @@ class AmbariClient:
         for service in services:
             config_json_file = os.path.join(config_folder, service, "{0}.json".format(service))
 
-            with open(config_json_file, 'r', encoding='UTF8') as file:
+            with open(config_json_file, 'r') as file:
                 config = json.load(file)
 
             for config_key in config["properties"]:
@@ -280,7 +281,7 @@ class AmbariClient:
                     if property_key == "content":
                         file_name = config["properties"][config_key]["properties"][property_key]
                         file_path = os.path.join(config_folder, service, file_name)
-                        with open(file_path, 'r', encoding='UTF8') as file:
+                        with open(file_path, 'r') as file:
                             config["properties"][config_key]["properties"][property_key] = file.read()
 
                 blueprint["configurations"].append({
@@ -291,7 +292,6 @@ class AmbariClient:
 
     def dump_config(self, config_folder, cluster_size):
         r = self.session.get(self.ambari_url + '/api/v1/clusters/' + self.stack_name + '?fields=service_config_versions,Clusters/desired_service_config_versions')
-
         r.raise_for_status()
 
         service_json = r.json()
@@ -336,7 +336,8 @@ class AmbariClient:
         # dump the json per service, and replace "content" by an external file
         for service_key in service_config_json:
 
-            os.makedirs(os.path.join(config_folder, service_key), exist_ok=True)
+            if not os.path.exists(os.path.join(config_folder, service_key)):
+                os.makedirs(os.path.join(config_folder, service_key))
 
             service_config = service_config_json[service_key]
             for service_property in service_config["properties"]:
@@ -350,14 +351,14 @@ class AmbariClient:
 
                         content = config["properties"][property]
                         config["properties"][property] = content_file
-                        with open(content_file_path, 'w', encoding='UTF8') as file:
+                        with open(content_file_path, 'w') as file:
                             file.write(content)
                     else:
                         config["properties"][property] = self.replace_host_to_group(config["properties"][property], host_groups)
 
 
             config_file = os.path.join(config_folder, service_key, "{0}.json".format(service_key))
-            with open(config_file, 'w', encoding='UTF8') as file:
+            with open(config_file, 'w') as file:
                 json.dump(service_config_json[service_key], file, sort_keys=True, indent=4, separators=(',', ': '))
 
     def get_property_extension_file(self, property):
@@ -365,131 +366,20 @@ class AmbariClient:
             extention = ".sh"
         elif property.endswith('-log4j'):
             extention = ".properties"
+        elif property.endswith('-log4j2'):
+            extention = ".properties"
         elif property.endswith('-properties'):
             extention = ".properties"
         elif property.endswith('.properties'):
             extention = ""
+        elif property.endswith('-blacklist'):
+            extention = ".properties"
         elif property.endswith('-logsearch-conf'):
             extention = ".json"
         else:
             extention = ".txt"
 
         return extention
-
-    def get_service_configs(self):
-        service_configs = {
-            'HDFS': [
-                "core-site",
-                "hdfs-site",
-                "hadoop-env",
-                "hadoop-policy",
-                "hdfs-log4j",
-                "ssl-client",
-                "ssl-server",
-                "ranger-hdfs-plugin-properties",
-                "ranger-hdfs-audit",
-                "ranger-hdfs-policymgr-ssl",
-                "ranger-hdfs-security"
-            ],
-            'YARN': [
-                "yarn-env",
-                "yarn-log4j",
-                "yarn-site",
-                "capacity-scheduler",
-                "ranger-yarn-plugin-properties",
-                "ranger-yarn-audit",
-                "ranger-yarn-policymgr-ssl",
-                "ranger-yarn-security"
-            ],
-            'MAPREDUCE2': [
-                "mapred-site",
-                "mapred-env"
-            ],
-            'ZOOKEEPER': [
-                "zookeeper-log4j",
-                "zookeeper-env",
-                "zoo.cfg"
-            ],
-            'PIG': [
-                "pig-env",
-                "pig-log4j",
-                "pig-properties"
-            ],
-            'TEZ': [
-                "tez-site",
-                "tez-env"
-            ],
-            'SLIDER': [
-                "slider-log4j",
-                "slider-client",
-                "slider-env"
-            ],
-            'HIVE': [
-                "hive-log4j",
-                "hive-exec-log4j",
-                "hive-env",
-                "hivemetastore-site.xml",
-                "webhcat-site",
-                "webhcat-env",
-                "ranger-hive-plugin-properties",
-                "ranger-hive-audit",
-                "ranger-hive-policymgr-ssl",
-                "ranger-hive-security"
-            ],
-            'OOZIE': [
-                "oozie-site",
-                "oozie-env",
-                "oozie-log4j"
-            ],
-            'HBASE': [
-                "hbase-policy",
-                "hbase-site",
-                "hbase-env",
-                "hbase-log4j",
-                "ranger-hbase-plugin-properties",
-                "ranger-hbase-audit",
-                "ranger-hbase-policymgr-ssl",
-                "ranger-hbase-security"
-            ],
-            'SPARK': [
-                "spark-defaults",
-                "spark-env",
-                "spark-log4j-properties",
-                "spark-metrics-properties",
-                "spark-javaopts-properties",
-                "spark-thrift-sparkconf",
-                "spark-hive-site-override",
-                "spark-thrift-fairscheduler"
-            ],
-            'KAFKA': [
-                "kafka-broker",
-                "kafka-env",
-                "kafka-log4j",
-                "ranger-kafka-plugin-properties",
-                "ranger-kafka-audit",
-                "ranger-kafka-policymgr-ssl",
-                "ranger-kafka-security"
-            ],
-            'KNOX': [
-                "gateway-site",
-                "gateway-log4j",
-                "topology",
-                "admin-topology",
-                "knoxsso-topology",
-                "ranger-knox-plugin-properties",
-                "ranger-knox-audit",
-                "ranger-knox-policymgr-ssl",
-                "ranger-knox-security"
-            ],
-            'RANGER': [
-                "admin-log4j",
-                "usersync-log4j",
-                "ranger-admin-site",
-                "ranger-ugsync-site",
-            ]
-        }
-
-        return service_configs
 
     def get_service_from_component(self, component):
         component_services = {
