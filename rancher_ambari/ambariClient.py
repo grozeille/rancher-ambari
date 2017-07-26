@@ -104,6 +104,8 @@ class AmbariClient:
             {"name": "secondarynamenode", "size": 1},
             {"name": "resourcemanager", "size": 1},
             {"name": "zookeeper", "size": 1},
+            {"name": "hive", "size": 1},
+            {"name": "spark", "size": 1},
             {"name": "datanode", "size": cluster_size},
         ]
 
@@ -413,7 +415,7 @@ class AmbariClient:
                 "SLIDER"
             ],
             "HIVE": [
-                "HIVE_CLIENT"
+                "HIVE_CLIENT",
                 "HCAT",
                 "HIVE_METASTORE",
                 "HIVE_SERVER",

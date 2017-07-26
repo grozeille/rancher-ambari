@@ -61,7 +61,7 @@
           "name" : "HCAT"
         },
         {
-          "name" : "WEBHCAT"
+          "name" : "WEBHCAT_SERVER"
         }
       ]
     },
