@@ -45,6 +45,39 @@
       ]
     },
     {
+      "name" : "host_group_hive",
+      "configurations" : [ ],
+      "components" : [
+        {
+          "name" : "HIVE_SERVER"
+        },
+        {
+          "name" : "MYSQL_SERVER"
+        },
+        {
+          "name" : "HIVE_METASTORE"
+        },
+        {
+          "name" : "HCAT"
+        },
+        {
+          "name" : "WEBHCAT"
+        }
+      ]
+    },
+    {
+      "name" : "host_group_spark",
+      "configurations" : [ ],
+      "components" : [
+        {
+          "name" : "LIVY2_SERVER"
+        },
+        {
+          "name" : "SPARK2_JOBHISTORYSERVER"
+        }
+      ]
+    },
+    {
       "name" : "host_group_datanode",
       "configurations" : [ ],
       "cardinality" : "1",
@@ -75,6 +108,12 @@
         },
         {
           "name" : "TEZ_CLIENT"
+        },
+        {
+          "name" : "HIVE_CLIENT"
+        },
+        {
+          "name" : "SPARK2_CLIENT"
         }
       ]
     }

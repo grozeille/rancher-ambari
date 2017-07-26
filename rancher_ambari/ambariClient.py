@@ -411,6 +411,21 @@ class AmbariClient:
             ],
             "SLIDER": [
                 "SLIDER"
+            ],
+            "HIVE": [
+                "HIVE_CLIENT"
+                "HCAT",
+                "HIVE_METASTORE",
+                "HIVE_SERVER",
+                "HIVE_SERVER_INTERACTIVE",
+                "MYSQL_SERVER",
+                "WEBHCAT_SERVER"
+            ],
+            "SPARK2" : [
+                "LIVY2_SERVER",
+                "SPARK2_CLIENT",
+                "SPARK2_JOBHISTORYSERVER",
+                "SPARK2_THRIFTSERVER"
             ]
         }
 
