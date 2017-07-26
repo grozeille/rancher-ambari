@@ -106,18 +106,18 @@ services:
       io.rancher.container.pull_image: always
       io.rancher.container.hostname_override: container_name
       io.rancher.scheduler.affinity:host_label: hadoop=data
-  ambari-agent-hive-database:
-    image: library/postgres:9.6
-    environment:
-      POSTGRES_USER: hive
-      POSTGRES_PASSWORD: hive
-      POSTGRES_DB: hive
-    stdin_open: true
-    tty: true
-    labels:
-      io.rancher.container.pull_image: always
-      io.rancher.container.hostname_override: container_name
-      io.rancher.scheduler.affinity:host_label: hadoop=data
+  #ambari-agent-hive-database:
+  #  image: library/postgres:9.6
+  #  environment:
+  #    POSTGRES_USER: hive
+  #    POSTGRES_PASSWORD: hive
+  #    POSTGRES_DB: hive
+  #  stdin_open: true
+  #  tty: true
+  #  labels:
+  #    io.rancher.container.pull_image: always
+  #    io.rancher.container.hostname_override: container_name
+  #    io.rancher.scheduler.affinity:host_label: hadoop=data
   ambari-agent-hive:
     privileged: true
     image: grozeille/ambari-agent:2.5.1.0-v1
@@ -125,7 +125,7 @@ services:
     tty: true
     links:
     - ambari-server:ambari-server
-    - ambari-agent-hive-database:ambari-agent-hive-database
+    #- ambari-agent-hive-database:ambari-agent-hive-database
     command:
     - systemd.setenv=USE_CONSUL_DNS=false
     - systemd.setenv=AMBARI_SERVER_ADDR=ambari-server
