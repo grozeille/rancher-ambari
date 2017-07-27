@@ -19,6 +19,7 @@
                 "hadoop.security.auth_to_local": "DEFAULT",
                 "hadoop.security.authentication": "simple",
                 "hadoop.security.authorization": "false",
+                "hadoop.security.key.provider.path": "",
                 "io.compression.codecs": "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec",
                 "io.file.buffer.size": "131072",
                 "io.serializations": "org.apache.hadoop.io.serializer.WritableSerialization",
@@ -32,6 +33,9 @@
             "properties_attributes": {
                 "final": {
                     "fs.defaultFS": "true"
+                },
+                "fs.defaultFS": {
+                    "final": "true"
                 }
             }
         },
@@ -122,6 +126,7 @@
                 "dfs.datanode.max.transfer.threads": "4096",
                 "dfs.domain.socket.path": "/var/lib/hadoop-hdfs/dn_socket",
                 "dfs.encrypt.data.transfer.cipher.suites": "AES/CTR/NoPadding",
+                "dfs.encryption.key.provider.uri": "",
                 "dfs.heartbeat.interval": "3",
                 "dfs.hosts.exclude": "/etc/hadoop/conf/dfs.exclude",
                 "dfs.http.policy": "HTTP_ONLY",
@@ -162,6 +167,24 @@
                 "nfs.file.dump.dir": "/tmp/.hdfs-nfs"
             },
             "properties_attributes": {
+                "dfs.datanode.data.dir": {
+                    "final": "true"
+                },
+                "dfs.datanode.failed.volumes.tolerated": {
+                    "final": "true"
+                },
+                "dfs.namenode.http-address": {
+                    "final": "true"
+                },
+                "dfs.namenode.name.dir": {
+                    "final": "true"
+                },
+                "dfs.support.append": {
+                    "final": "true"
+                },
+                "dfs.webhdfs.enabled": {
+                    "final": "true"
+                },
                 "final": {
                     "dfs.datanode.data.dir": "true",
                     "dfs.datanode.failed.volumes.tolerated": "true",

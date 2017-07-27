@@ -81,8 +81,8 @@ services:
     stdin_open: true
     tty: true
     ports:
-    - 18080:18080/tcp
-    - 8998:8998/tcp
+    - 18081:18081/tcp
+    - 8999:8999/tcp
     links:
     - ambari-server:ambari-server
     command:
@@ -123,6 +123,10 @@ services:
     image: grozeille/ambari-agent:2.5.1.0-v1
     stdin_open: true
     tty: true
+    ports:
+    - 10500:10500/tcp
+    - 10502:10502/tcp
+    - 10000:10000/tcp
     links:
     - ambari-server:ambari-server
     #- ambari-agent-hive-database:ambari-agent-hive-database
