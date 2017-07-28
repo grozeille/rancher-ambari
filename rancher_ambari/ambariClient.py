@@ -95,6 +95,48 @@ class AmbariClient:
 
         logging.info("Cluster Ready")
 
+    def stop_cluster(self):
+
+        r = self.session.get(self.ambari_url + '/api/v1/clusters/' + self.stack_name + '?fields=services')
+        r.raise_for_status()
+
+        service_json = r.json()
+
+        for service in service_json["services"]:
+            href = service["href"]
+            service_name = service["ServiceInfo"]["service_name"]
+
+            r = self.session.get(href)
+            r.raise_for_status()
+            if r.json()["ServiceInfo"]["state"] != "INSTALLED":
+
+                logging.info("Stopping "+service["ServiceInfo"]["service_name"])
+                #{"RequestInfo": {"context" :"Stop HDFS via REST"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}
+                stop_command = {
+                    "RequestInfo": {
+                        "context": "Stop {0} from CLI".format(service_name),
+                        "operation_level": {
+                            "level": "SERVICE",
+                            "cluster_name": self.stack_name,
+                            "service_name": service_name
+                        }
+                    },
+                    "Body": {
+                        "ServiceInfo": {
+                            "state":"INSTALLED"
+                        }
+                    }
+                }
+
+
+                r = self.session.put(href, data=json.dumps(stop_command))
+                r.raise_for_status()
+
+                if r.status_code == 202:
+                    self.wait_for_cluster_request(r.json()["Requests"]["id"])
+
+        logging.info("Cluster stopped")
+
     def build_host_groups(self, cluster_size):
 
         result = []
@@ -242,9 +284,14 @@ class AmbariClient:
             logging.error("Unexpected error:", sys.exc_info()[1])
             return False
 
+    def wait_for_cluster_request(self, requestId):
+        while True:
+            ready = self.check_for_cluster_request(requestId)
+            time.sleep(10)
+            if ready:
+                break
+
     def check_for_cluster_request(self, requestId):
-        "wait for cluster to be ready"
-        logging.info("Wait for cluster to be ready")
         r = self.session.get(self.ambari_url + '/api/v1/clusters/' + self.stack_name + '/requests/' + str(requestId))
         r.raise_for_status()
         requestDetail = r.json()
