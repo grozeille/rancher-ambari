@@ -34,7 +34,7 @@ def dump_config(cluster_size):
 
     ambari_client = AmbariClient()
 
-    ambari_client.connect(ambari_public_ip, stack_name)
+    ambari_client.connect(ambari_public_ip, stack_name, port=8081)
 
     ambari_client.dump_config('configs/ambari', cluster_size)
 
@@ -44,7 +44,7 @@ def update_config(cluster_size):
     ambari_public_ip = rancher_client.get_ambari_master_ip()
 
     ambari_client = AmbariClient()
-    ambari_client.connect(ambari_public_ip, stack_name)
+    ambari_client.connect(ambari_public_ip, stack_name, port=8081)
 
     ambari_client.update_cluster('configs/ambari', cluster_size)
 
@@ -54,7 +54,7 @@ def destroy():
     ambari_public_ip = rancher_client.get_ambari_master_ip()
 
     ambari_client = AmbariClient()
-    ambari_client.connect(ambari_public_ip, stack_name)
+    ambari_client.connect(ambari_public_ip, stack_name, port=8081)
 
     ambari_client.stop_cluster()
 
@@ -66,7 +66,7 @@ def stop():
     ambari_public_ip = rancher_client.get_ambari_master_ip()
 
     ambari_client = AmbariClient()
-    ambari_client.connect(ambari_public_ip, stack_name)
+    ambari_client.connect(ambari_public_ip, stack_name, port=8081)
 
     ambari_client.stop_cluster()
 

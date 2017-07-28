@@ -9,8 +9,8 @@ class AmbariClient:
     def __init__(self):
         pass
 
-    def connect(self, ambari_ip, stack_name):
-        self.ambari_url = 'http://{0}:8081'.format(ambari_ip)
+    def connect(self, ambari_ip, stack_name, https=False, port=8080):
+        self.ambari_url = '{0}://{1}:{2}'.format("https" if https else "http", ambari_ip, port)
         self.session = Session()
         self.session.auth = ("admin", "admin")
         self.session.headers.update({
@@ -111,7 +111,6 @@ class AmbariClient:
             if r.json()["ServiceInfo"]["state"] != "INSTALLED":
 
                 logging.info("Stopping "+service["ServiceInfo"]["service_name"])
-                #{"RequestInfo": {"context" :"Stop HDFS via REST"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}
                 stop_command = {
                     "RequestInfo": {
                         "context": "Stop {0} from CLI".format(service_name),
@@ -137,29 +136,33 @@ class AmbariClient:
 
         logging.info("Cluster stopped")
 
-    def build_host_groups(self, cluster_size):
+    def set_host_groups(self, cluster_host_groups):
+        self.cluster_host_groups = cluster_host_groups
+
+    def build_host_groups(self, config_folder, cluster_size):
+
+        if self.cluster_host_groups != None:
+            return self.cluster_host_groups
+
+
+        blueprint_json = self.build_config(config_folder)
 
         result = []
 
-        host_groups = [
-            {"name": "namenode", "size": 1},
-            {"name": "secondarynamenode", "size": 1},
-            {"name": "resourcemanager", "size": 1},
-            {"name": "zookeeper", "size": 1},
-            {"name": "hive", "size": 1},
-            {"name": "spark", "size": 1},
-            {"name": "datanode", "size": cluster_size},
-        ]
-
-        for host_group_name in host_groups:
-            host_group = {
-                'name': 'host_group_' + host_group_name['name'],
+        for host_group in blueprint_json["host_groups"]:
+            name = host_group["name"]
+            cluster_host_group = {
+                'name': name,
                 'hosts': []
             }
 
-            for cpt in range(1, host_group_name['size'] + 1):
-                host_group['hosts'].append(
-                    {'fqdn': '{0}-ambari-agent-{1}-{2}'.format(self.stack_name, host_group_name['name'], cpt)})
+            size = 1
+            if name == "host_group_datanode":
+                size = cluster_size
+
+            for cpt in range(1, size + 1):
+                cluster_host_group['hosts'].append(
+                    {'fqdn': '{0}-ambari-agent-{1}-{2}'.format(self.stack_name, name, cpt)})
 
                 result.append(host_group)
 
