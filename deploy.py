@@ -41,3 +41,5 @@ ambari_client.create_cluster('configs/ambari', cluster_size, hdp_repo_url=hdp_re
 #ambari_client.dump_config('configs/ambari', cluster_size)
 
 #ambari_client.update_cluster('configs/ambari', cluster_size)
+
+#ambari_client.stop_cluster()
