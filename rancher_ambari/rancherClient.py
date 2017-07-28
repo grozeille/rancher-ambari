@@ -97,6 +97,17 @@ class RancherClient:
             stack_health_state = json_result['healthState']
             logging.info("Stack state: {0}".format(stack_health_state))
 
+    def destroy_stack(self):
+
+        if self.get_stack() == False:
+            logging.info("Stack not created, skip")
+            return
+
+        logging.info("Destroying the Ambari stack")
+        r = self.session.delete(self.rancher_url + '/v2-beta/projects/{0}/stacks/{1}'.format(self.project_id, self.stack_id))
+        r.raise_for_status()
+
+
     def get_ambari_master_ip(self):
 
         if self.get_stack() == False:
